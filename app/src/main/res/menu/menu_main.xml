@@ -37,10 +37,6 @@
             </group>
 
         </menu>
-
-
-
-
     </item>
 
     <item android:id="@+id/search"
