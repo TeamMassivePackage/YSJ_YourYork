@@ -11,10 +11,10 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -184,17 +184,52 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        //Need to reference the API's or map here. Not entirely sure so will continue with this later
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch(item.getItemId()) {
+            case R.id.schools:
+                if(!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    return true;
+                }
+            case R.id.catchment:
+                if(!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    return true;
+                }
+            case R.id.crime:
+                if(!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    return true;
+                }
+            case R.id.calling:
+                if(!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    return true;
+                }
+            default:
+                return super.onOptionsItemSelected(item);
         }
-
-        return super.onOptionsItemSelected(item);
     }
 
     /**
