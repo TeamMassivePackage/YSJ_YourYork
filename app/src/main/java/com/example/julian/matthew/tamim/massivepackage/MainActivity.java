@@ -75,11 +75,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         navigationView.setNavigationItemSelectedListener(this);
 
         //SET UP HTTP URL CONNECTION
-        new JSONTask().execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+        new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
 
     }
 
     public class JSONTask extends AsyncTask<String, String, String> {
+        int apiType;
+
+        JSONTask(int type){apiType = type;}
 
         @Override
         protected String doInBackground(String... urls) {
@@ -99,26 +102,27 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     buffer.append(line);
                 }
                 String finalJson = buffer.toString();
-                JSONArray parentArray = new JSONArray(finalJson);
 
-                StringBuffer finalBufferedData = new StringBuffer();
-                for(int i =0; i<parentArray.length(); i++){
-                    JSONObject finalObject = parentArray.getJSONObject(i);
-                    String category = finalObject.getString("category");
-                    String month = finalObject.getString("month");
-                    finalBufferedData.append(category + " - " + month + "\n");
+                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
+
+
+                switch(apiType){
+                    case R.string.CRIME:
+                    {
+                        //DO CRIME STUFF
+                        parseCrimeData(finalJson);
+                        break;
+                    }
                 }
-                Log.e("Do in Background Task", finalBufferedData.toString());
-                return finalBufferedData.toString();
+
+
 
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            } finally {
+            }  finally {
                 if (connection != null) {
                     connection.disconnect();
                 }
@@ -137,8 +141,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
-            //CODE TO HANDLE THE buffer.toString()
+            //CODE TO HANDLE THE MAIN THREAD UI
+            switch(apiType){
+                case R.string.CRIME:
+                {
+                    //DO CRIME STUFF
+                    Log.e("On Post Execute:", "soghsodghdsoghadgjhdslgoahgohgghskgjshgjklsh");
+                    break;
+                }
+            }
         }
+    }
+
+    private void parseCrimeData(String finalJson) {
+
+        try {
+            JSONArray parentArray = new JSONArray(finalJson);
+            StringBuffer finalBufferedData  = new StringBuffer();
+            for (int i = 0; i < parentArray.length(); i++) {
+                JSONObject finalObject = parentArray.getJSONObject(i);
+                String category = finalObject.getString("category");
+                String month = finalObject.getString("month");
+                JSONObject locationObject = finalObject.getJSONObject("location");
+                String lat = locationObject.getString("latitude");
+                String lng = locationObject.getString("longitude");
+                finalBufferedData.append(category + " - " + month + " - " + lat + " " + lng + "\n");
+            }
+            Log.e("Parse Crime Data:", finalBufferedData.toString());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+
     }
 
     @Override

@@ -2,4 +2,5 @@
 <resources>
     <string name="filter">Filter</string>
     <string name="search">Search</string>
+    <string name="CRIME">Crime</string>
 </resources>
