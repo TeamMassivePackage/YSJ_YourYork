@@ -30,6 +30,9 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -94,12 +97,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 while ((line = reader.readLine()) != null) {
                     buffer.append(line);
                 }
-                return buffer.toString();
+                String finalJson = buffer.toString();
+                JSONArray parentArray = new JSONArray(finalJson);
+
+                StringBuffer finalBufferedData = new StringBuffer();
+                for(int i =0; i<parentArray.length(); i++){
+                    JSONObject finalObject = parentArray.getJSONObject(i);
+                    String category = finalObject.getString("category");
+                    String month = finalObject.getString("month");
+                    finalBufferedData.append(category + " - " + month + "\n");
+                }
+                Log.e("Do in Background Task", finalBufferedData.toString());
+                return finalBufferedData.toString();
 
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             } catch (IOException e) {
+                e.printStackTrace();
+            } catch (JSONException e) {
                 e.printStackTrace();
             } finally {
                 if (connection != null) {
