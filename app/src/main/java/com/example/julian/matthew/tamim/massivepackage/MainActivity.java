@@ -21,10 +21,12 @@ import android.widget.Button;
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.apache.http.HttpEntity;
@@ -58,6 +60,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        MapsInitializer.initialize(getApplicationContext());
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -171,6 +175,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 crimeModel.setLongitude(locationObject.getString("longitude"));
                 crimeModel.setMonth(finalObject.getString("month"));
 
+                JSONObject streetObject = locationObject.getJSONObject("street");
+                crimeModel.setStreet_name(streetObject.getString("name"));
+
                 //ADD crimeModel object to crimeModelList to make crime list
                 crimeModelList.add(crimeModel);
             }
@@ -184,18 +191,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void showCrimeData(){
+        StringBuffer buffer = new StringBuffer();
         for(int i = 0; i < crimeModelList.size(); i++){
             Double locationLat = Double.parseDouble(crimeModelList.get(i).getLatitude());
             Double locationLng = Double.parseDouble(crimeModelList.get(i).getLongitude());
             String category = crimeModelList.get(i).getCategory();
             String streetName = crimeModelList.get(i).getStreet_name();
             String month = crimeModelList.get(i).getMonth();
+
+            buffer.append(category + ", " + streetName + ", " + month);
+
             mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(locationLat, locationLng))
                     .title(category)
-                    .snippet(streetName + "\n Reported On: " +month)
+                    .snippet(streetName + "\nReported On: " + month)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         }
+        Log.e("Crime Model List size: ", ""+crimeModelList.size());
+        Log.e("Show Crime Data: ", buffer.toString());
     }
 
     @Override
@@ -305,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Add a marker in Sydney and move the camera
         LatLng york = new LatLng(53.958576, -1.087460);
-        mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
+        //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(york));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
     }
