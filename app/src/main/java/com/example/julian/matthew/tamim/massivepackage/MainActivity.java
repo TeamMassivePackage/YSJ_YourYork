@@ -3,22 +3,18 @@ package com.example.julian.matthew.tamim.massivepackage;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Button;
-
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
+import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
@@ -26,15 +22,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -55,13 +44,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Toolbar toolbar;
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
+    private List<SchoolModel> schoolModelList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        MapsInitializer.initialize(getApplicationContext());
+        //MapsInitializer.initialize(getApplicationContext());
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -85,84 +75,41 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //SET UP HTTP URL CONNECTION
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
-        //https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401
+        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
+        new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
 
     }
 
-    public class JSONTask extends AsyncTask<String, String, String> {
-        int apiType;
+    private void parseSchoolData(String returnedJson, char schoolType) {
+        try {
+            JSONObject parentObject = new JSONObject(returnedJson);
+            schoolModelList = new ArrayList<>();
+            if (parentObject.getString("success").equals("true")) {
+                JSONObject resultObject = parentObject.getJSONObject("result");
+                JSONArray recordsArray = resultObject.getJSONArray("records");
+                for (int i = 0; i < recordsArray.length(); i++) {
+                    JSONObject finalObject = recordsArray.getJSONObject(i);
+                    SchoolModel schoolModel = new SchoolModel();
+                    schoolModel.setId(finalObject.getInt("_id"));
+                    schoolModel.setSchoolType(schoolType);
+                    schoolModel.setWebsite(finalObject.getString("WEBSITE"));
+                    schoolModel.setSchoolName(finalObject.getString("SCHNAME"));
+                    schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
+                    schoolModel.setWard(finalObject.getString("WARD"));
 
-        JSONTask(int type){apiType = type;}
-
-        @Override
-        protected String doInBackground(String... urls) {
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-            try {
-                URL url = new URL(urls[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect(); //connecting directly to server
-
-                InputStream stream = connection.getInputStream(); //response from server is input stream
-
-                reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
-                StringBuffer buffer = new StringBuffer();
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line);
-                }
-                String finalJson = buffer.toString();
-
-                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
-                switch(apiType){
-                    case R.string.CRIME:
-                    {
-                        //PARSE CRIME DATA
-                        parseCrimeData(finalJson);
-                        break;
-                    }
-                }
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }  finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                try {
-                    if (reader != null) {
-                        reader.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    //ADD SCHOOL OBJECT TO SCHOOL LIST
+                    schoolModelList.add(schoolModel);
                 }
             }
-            return null; //IF IT DOESN'T MAKE A CONNECTION TO SERVER, RETURN NULL
-        }
-
-        @Override
-        protected void onPostExecute(String s) {
-            super.onPostExecute(s);
-
-            //CODE TO HANDLE THE MAIN THREAD UI
-            switch(apiType){
-                case R.string.CRIME:
-                {
-                    //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
-                    Log.e("On Post Execute:", "Showing Crime Data -------------------->>>");
-                    showCrimeData();
-                    break;
-                }
-            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
-    private void parseCrimeData(String finalJson) {
+    private void parseCrimeData(String returnedJson) {
 
         try {
-            JSONArray parentArray = new JSONArray(finalJson);
+            JSONArray parentArray = new JSONArray(returnedJson);
             crimeModelList = new ArrayList<>();
             for (int i = 0; i < parentArray.length(); i++) {
                 JSONObject finalObject = parentArray.getJSONObject(i);
@@ -190,16 +137,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private void showCrimeData(){
-        StringBuffer buffer = new StringBuffer();
-        for(int i = 0; i < crimeModelList.size(); i++){
+    private void showCrimeData() {
+        for (int i = 0; i < crimeModelList.size(); i++) {
             Double locationLat = Double.parseDouble(crimeModelList.get(i).getLatitude());
             Double locationLng = Double.parseDouble(crimeModelList.get(i).getLongitude());
             String category = crimeModelList.get(i).getCategory();
             String streetName = crimeModelList.get(i).getStreet_name();
             String month = crimeModelList.get(i).getMonth();
-
-            buffer.append(category + ", " + streetName + ", " + month);
 
             mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(locationLat, locationLng))
@@ -207,8 +151,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .snippet(streetName + "\nReported On: " + month)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
         }
-        Log.e("Crime Model List size: ", ""+crimeModelList.size());
-        Log.e("Show Crime Data: ", buffer.toString());
     }
 
     @Override
@@ -257,9 +199,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onOptionsItemSelected(MenuItem item) {
         //Need to reference the API's or map here. Not entirely sure so will continue with this later
 
-        switch(item.getItemId()) {
+        switch (item.getItemId()) {
             case R.id.schools:
-                if(!item.isChecked()) {
+                if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
                     return true;
@@ -269,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return true;
                 }
             case R.id.catchment:
-                if(!item.isChecked()) {
+                if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
                     return true;
@@ -279,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return true;
                 }
             case R.id.crime:
-                if(!item.isChecked()) {
+                if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
                     return true;
@@ -289,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     return true;
                 }
             case R.id.calling:
-                if(!item.isChecked()) {
+                if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
                     return true;
@@ -321,6 +263,92 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(york));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+    }
+
+    public class JSONTask extends AsyncTask<String, String, String> {
+        int apiType;
+        char schoolType;
+
+        JSONTask(int type) {
+            apiType = type;
+        }
+
+        JSONTask(int type, char schType) {
+            apiType = type;
+            schoolType = schType;
+        }
+
+        @Override
+        protected String doInBackground(String... urls) {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(urls[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect(); //connecting directly to server
+
+                InputStream stream = connection.getInputStream(); //response from server is input stream
+
+                reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
+                }
+                String returnedJson = buffer.toString();
+
+                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
+                switch (apiType) {
+                    case R.string.CRIME: {
+                        //PARSE CRIME DATA
+                        parseCrimeData(returnedJson);
+                        break;
+                    }
+                    case R.string.SCHOOL: {
+                        //PARSE SCHOOL DATA
+                        parseSchoolData(returnedJson, schoolType);
+                        break;
+                    }
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            return null; //IF IT DOESN'T MAKE A CONNECTION TO SERVER, RETURN NULL
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+            super.onPostExecute(s);
+
+            //CODE TO HANDLE THE MAIN THREAD UI
+            switch (apiType) {
+                case R.string.CRIME: {
+                    //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
+                    Log.e("On Post ececute CRIME: ", "SHOWING CRIME DATA ------>>>>");
+                    showCrimeData();
+                    break;
+                }
+                case R.string.SCHOOL: {
+                    //PARSE SCHOOL DATA
+                    Log.e("On Post SCHOOL: ", "oighogihfriughirughlfghglskfjjkfghhfglkjdfhg");
+                    break;
+                }
+            }
+        }
     }
 
 }

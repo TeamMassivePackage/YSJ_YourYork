@@ -1,10 +1,11 @@
 package com.example.julian.matthew.tamim.massivepackage.Model;
 
 /**
- * Created by Julian Limited on 25/11/2015.
+ * Created by Julian on 25/11/2015.
  */
 public class SchoolModel {
     private int id;
+    private char schoolType;
     private String website;
     private String schoolName;
     private String location;
@@ -12,6 +13,14 @@ public class SchoolModel {
 
     public int getId() {
         return id;
+    }
+
+    public char getSchoolType() {
+        return schoolType;
+    }
+
+    public void setSchoolType(char schoolType) {
+        this.schoolType = schoolType;
     }
 
     public void setId(int id) {
