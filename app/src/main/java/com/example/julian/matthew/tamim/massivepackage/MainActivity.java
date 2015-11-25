@@ -18,10 +18,12 @@ import android.view.MenuItem;
 import android.widget.Button;
 
 
+import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -42,12 +44,15 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
     private Toolbar toolbar;
     private GoogleMap mMap;
+    private List<CrimeModel> crimeModelList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //SET UP HTTP URL CONNECTION
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+        //https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401
 
     }
 
@@ -104,19 +110,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String finalJson = buffer.toString();
 
                 //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
-
-
                 switch(apiType){
                     case R.string.CRIME:
                     {
-                        //DO CRIME STUFF
+                        //PARSE CRIME DATA
                         parseCrimeData(finalJson);
                         break;
                     }
                 }
-
-
-
 
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -145,8 +146,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             switch(apiType){
                 case R.string.CRIME:
                 {
-                    //DO CRIME STUFF
-                    Log.e("On Post Execute:", "soghsodghdsoghadgjhdslgoahgohgghskgjshgjklsh");
+                    //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
+                    Log.e("On Post Execute:", "Showing Crime Data -------------------->>>");
+                    showCrimeData();
                     break;
                 }
             }
@@ -157,24 +159,43 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         try {
             JSONArray parentArray = new JSONArray(finalJson);
-            StringBuffer finalBufferedData  = new StringBuffer();
+            crimeModelList = new ArrayList<>();
             for (int i = 0; i < parentArray.length(); i++) {
                 JSONObject finalObject = parentArray.getJSONObject(i);
-                String category = finalObject.getString("category");
-                String month = finalObject.getString("month");
+                CrimeModel crimeModel = new CrimeModel();
+                crimeModel.setId(finalObject.getInt("id"));
+                crimeModel.setCategory(finalObject.getString("category"));
+                crimeModel.setLocation_type(finalObject.getString("location_type"));
                 JSONObject locationObject = finalObject.getJSONObject("location");
-                String lat = locationObject.getString("latitude");
-                String lng = locationObject.getString("longitude");
-                finalBufferedData.append(category + " - " + month + " - " + lat + " " + lng + "\n");
+                crimeModel.setLatitude(locationObject.getString("latitude"));
+                crimeModel.setLongitude(locationObject.getString("longitude"));
+                crimeModel.setMonth(finalObject.getString("month"));
+
+                //ADD crimeModel object to crimeModelList to make crime list
+                crimeModelList.add(crimeModel);
             }
-            Log.e("Parse Crime Data:", finalBufferedData.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+        //RETURN AN ARRAYLIST OF CRIME OBJECTS
 
 
+    }
 
+    private void showCrimeData(){
+        for(int i = 0; i < crimeModelList.size(); i++){
+            Double locationLat = Double.parseDouble(crimeModelList.get(i).getLatitude());
+            Double locationLng = Double.parseDouble(crimeModelList.get(i).getLongitude());
+            String category = crimeModelList.get(i).getCategory();
+            String streetName = crimeModelList.get(i).getStreet_name();
+            String month = crimeModelList.get(i).getMonth();
+            mMap.addMarker(new MarkerOptions()
+                    .position(new LatLng(locationLat, locationLng))
+                    .title(category)
+                    .snippet(streetName + "\n Reported On: " +month)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+        }
     }
 
     @Override
