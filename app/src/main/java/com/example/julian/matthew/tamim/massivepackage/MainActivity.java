@@ -15,6 +15,15 @@ import android.view.MenuItem;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.places.AutocompletePrediction;
+import com.google.android.gms.location.places.AutocompletePredictionBuffer;
+import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
@@ -22,6 +31,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -39,12 +49,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
 
     private Toolbar toolbar;
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
     private List<SchoolModel> schoolModelList;
+    protected GoogleApiClient mGoogleApiClient;
+
+    private static final LatLngBounds BOUNDS_GREATER_YORK = new LatLngBounds(
+            new LatLng(53.531698, -1.729611), new LatLng(54.266523, -0.445478));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +66,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
 
         //MapsInitializer.initialize(getApplicationContext());
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .enableAutoManage(this, 0 /* clientId */, this)
+                .addApi(Places.GEO_DATA_API)
+                .build();
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -80,7 +99,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
     private void parseSchoolData(String returnedJson, char schoolType) {
+
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
             schoolModelList = new ArrayList<>();
@@ -96,6 +128,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     schoolModel.setSchoolName(finalObject.getString("SCHNAME"));
                     schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
                     schoolModel.setWard(finalObject.getString("WARD"));
+                    StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
+                    query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
+                    //GOOGLE PLACES API
+                    PendingResult<AutocompletePredictionBuffer> result =
+                            Places.GeoDataApi.getAutocompletePredictions(mGoogleApiClient, query.toString(),
+                                    null, null);
+                    Log.e("School JSON query", query.toString());
+                    AutocompletePredictionBuffer autocompletePredictions = result.await();
+                    Log.e("predictions size:", "" + autocompletePredictions.getCount());
+                    if (autocompletePredictions.getStatus().isSuccess()) {
+                        Log.e("Place query Error: ", autocompletePredictions.getStatus().getStatusMessage());
+                        autocompletePredictions.release();
+                        return;
+                    }
+                    for (AutocompletePrediction p : autocompletePredictions) {
+                        Log.e("School JSON result", p.getDescription());
+                    }
+
+                    autocompletePredictions.release();
 
                     //ADD SCHOOL OBJECT TO SCHOOL LIST
                     schoolModelList.add(schoolModel);
@@ -263,6 +314,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(york));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 
     public class JSONTask extends AsyncTask<String, String, String> {
