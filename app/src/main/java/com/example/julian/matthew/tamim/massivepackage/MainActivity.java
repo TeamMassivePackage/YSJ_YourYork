@@ -80,6 +80,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
+    private String receiveJSON(String urls){
+        HttpURLConnection connection = null;
+        BufferedReader reader = null;
+        URL url = null;
+        try {
+            url = new URL(urls);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.connect(); //connecting directly to server
+
+            InputStream stream = connection.getInputStream(); //response from server is input stream
+
+            reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
+            StringBuffer buffer = new StringBuffer();
+            String line = "";
+            while ((line = reader.readLine()) != null) {
+                buffer.append(line);
+            }
+            String returnedJson = buffer.toString();
+            return returnedJson;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+            try {
+                if (reader != null) {
+                    reader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null; //RETURN NULL IF IT DOESNT WORK
+    }
+
     private void parseSchoolData(String returnedJson, char schoolType) {
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
@@ -97,13 +135,38 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
                     schoolModel.setWard(finalObject.getString("WARD"));
 
+                    //StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
+                    //query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
+                    //GOOGLE PLACES API
+                    /*PendingResult<AutocompletePredictionBuffer> result =
+                            Places.GeoDataApi.getAutocompletePredictions(mGoogleApiClient, query.toString(),
+                                    null, null);
+                    Log.e("School JSON query", query.toString());
+                    AutocompletePredictionBuffer autocompletePredictions = result.await();
+                    Log.e("predictions size:", "" + autocompletePredictions.getCount());
+                    if (autocompletePredictions.getStatus().isSuccess()) {
+                        Log.e("Place query Error: ", autocompletePredictions.getStatus().getStatusMessage());
+                        autocompletePredictions.release();
+                        return;
+                    }
+                    for (AutocompletePrediction p : autocompletePredictions) {
+                        Log.e("School JSON result", p.getDescription());
+                    }
+
+                    autocompletePredictions.release();*/
+
                     //ADD SCHOOL OBJECT TO SCHOOL LIST
                     schoolModelList.add(schoolModel);
                 }
+                String googlePlacesJson = receiveJSON("https://maps.googleapis.com/maps/api/place/textsearch/json?query=Clifton+With+Rawcliffe+Primary+Rawcliffe+Lane+Clifton+Without+York+YO30+5TA&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM");
+
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+    private void parseGooglePlacesData(){
+
     }
 
     private void parseCrimeData(String returnedJson) {
@@ -265,7 +328,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
     }
 
-    public class JSONTask extends AsyncTask<String, String, String> {
+    public class JSONTask extends AsyncTask<String, String, Void> {
         int apiType;
         char schoolType;
 
@@ -279,59 +342,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         @Override
-        protected String doInBackground(String... urls) {
-            HttpURLConnection connection = null;
-            BufferedReader reader = null;
-            try {
-                URL url = new URL(urls[0]);
-                connection = (HttpURLConnection) url.openConnection();
-                connection.connect(); //connecting directly to server
+        protected Void doInBackground(String... urls) {
 
-                InputStream stream = connection.getInputStream(); //response from server is input stream
+            String returnedJson = receiveJSON(urls[0]);
 
-                reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
-                StringBuffer buffer = new StringBuffer();
-                String line = "";
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line);
+            //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
+            switch (apiType) {
+                case R.string.CRIME: {
+                    //PARSE CRIME DATA
+                    parseCrimeData(returnedJson);
+                    break;
                 }
-                String returnedJson = buffer.toString();
-
-                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
-                switch (apiType) {
-                    case R.string.CRIME: {
-                        //PARSE CRIME DATA
-                        parseCrimeData(returnedJson);
-                        break;
-                    }
-                    case R.string.SCHOOL: {
-                        //PARSE SCHOOL DATA
-                        parseSchoolData(returnedJson, schoolType);
-                        break;
-                    }
-                }
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                if (connection != null) {
-                    connection.disconnect();
-                }
-                try {
-                    if (reader != null) {
-                        reader.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
+                case R.string.SCHOOL: {
+                    //PARSE SCHOOL DATA
+                    parseSchoolData(returnedJson, schoolType);
+                    break;
                 }
             }
-            return null; //IF IT DOESN'T MAKE A CONNECTION TO SERVER, RETURN NULL
+
+
+            return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(Void s) {
             super.onPostExecute(s);
 
             //CODE TO HANDLE THE MAIN THREAD UI
