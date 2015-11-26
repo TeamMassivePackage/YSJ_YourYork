@@ -22,6 +22,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -45,6 +46,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
     private List<SchoolModel> schoolModelList;
+
+    private List<Marker> crimeMarkers = new ArrayList<>();
+    private List<Marker> schoolMarkers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -208,11 +212,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             String streetName = crimeModelList.get(i).getStreet_name();
             String month = crimeModelList.get(i).getMonth();
 
-            mMap.addMarker(new MarkerOptions()
+            Marker crimeM = mMap.addMarker(new MarkerOptions()
                     .position(new LatLng(locationLat, locationLng))
                     .title(category)
                     .snippet(streetName + "\nReported On: " + month)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            crimeMarkers.add(crimeM);
+        }
+    }
+
+    private void hideCrimeData() {
+        for (int i = 0; i < crimeMarkers.size(); i++) {
+            crimeMarkers.get(i).setVisible(false);
         }
     }
 
