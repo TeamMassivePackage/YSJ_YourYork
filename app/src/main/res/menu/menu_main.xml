@@ -17,21 +17,25 @@
                 <item
                     android:id="@+id/schools"
                     android:title="@string/Schools"
+                    android:checked="true"
                     android:orderInCategory="1" app:showAsAction="never" />
 
                 <item
                     android:id="@+id/catchment"
                     android:title="@string/catchment"
+                    android:checked="true"
                     android:orderInCategory="2" app:showAsAction="never" />
 
                 <item
                     android:id="@+id/crime"
                     android:title="@string/crime"
+                    android:checked="true"
                     android:orderInCategory="3" app:showAsAction="never" />
 
                 <item
                     android:id="@+id/calling"
                     android:title="@string/calling"
+                    android:checked="true"
                     android:orderInCategory="4" app:showAsAction="never" />
 
             </group>

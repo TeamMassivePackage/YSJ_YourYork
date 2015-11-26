@@ -15,16 +15,13 @@ import android.view.MenuItem;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONArray;
@@ -42,16 +39,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
     private Toolbar toolbar;
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
     private List<SchoolModel> schoolModelList;
-    protected GoogleApiClient mGoogleApiClient;
-
-    private static final LatLngBounds BOUNDS_GREATER_YORK = new LatLngBounds(
-            new LatLng(53.531698, -1.729611), new LatLng(54.266523, -0.445478));
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +52,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_maps);
 
         //MapsInitializer.initialize(getApplicationContext());
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, 0 /* clientId */, this)
-                .addApi(Places.GEO_DATA_API)
-                .build();
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -92,58 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        mGoogleApiClient.connect();
-    }
-
-    @Override
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        super.onStop();
-    }
-
-    private String receiveJSON(String urls){
-        HttpURLConnection connection = null;
-        BufferedReader reader = null;
-        URL url = null;
-        try {
-            url = new URL(urls);
-            connection = (HttpURLConnection) url.openConnection();
-            connection.connect(); //connecting directly to server
-
-            InputStream stream = connection.getInputStream(); //response from server is input stream
-
-            reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
-            StringBuffer buffer = new StringBuffer();
-            String line = "";
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line);
-            }
-            String returnedJson = buffer.toString();
-            return returnedJson;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-            try {
-                if (reader != null) {
-                    reader.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null; //RETURN NULL IF IT DOESNT WORK
-    }
-
     private void parseSchoolData(String returnedJson, char schoolType) {
-
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
             schoolModelList = new ArrayList<>();
@@ -159,40 +96,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     schoolModel.setSchoolName(finalObject.getString("SCHNAME"));
                     schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
                     schoolModel.setWard(finalObject.getString("WARD"));
-                    //StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
-                    //query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
-                    //GOOGLE PLACES API
-                    /*PendingResult<AutocompletePredictionBuffer> result =
-                            Places.GeoDataApi.getAutocompletePredictions(mGoogleApiClient, query.toString(),
-                                    null, null);
-                    Log.e("School JSON query", query.toString());
-                    AutocompletePredictionBuffer autocompletePredictions = result.await();
-                    Log.e("predictions size:", "" + autocompletePredictions.getCount());
-                    if (autocompletePredictions.getStatus().isSuccess()) {
-                        Log.e("Place query Error: ", autocompletePredictions.getStatus().getStatusMessage());
-                        autocompletePredictions.release();
-                        return;
-                    }
-                    for (AutocompletePrediction p : autocompletePredictions) {
-                        Log.e("School JSON result", p.getDescription());
-                    }
 
-                    autocompletePredictions.release();*/
                     //ADD SCHOOL OBJECT TO SCHOOL LIST
                     schoolModelList.add(schoolModel);
                 }
-                String googlePlacesJson = receiveJSON("https://maps.googleapis.com/maps/api/place/textsearch/json?query=Clifton+With+Rawcliffe+Primary+Rawcliffe+Lane+Clifton+Without+York+YO30+5TA&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM");
-
-
             }
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
-    }
-
-    private void parseGooglePlacesData(){
-
     }
 
     private void parseCrimeData(String returnedJson) {
@@ -354,12 +265,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
     }
 
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
-    }
-
-    public class JSONTask extends AsyncTask<String, String, Void> {
+    public class JSONTask extends AsyncTask<String, String, String> {
         int apiType;
         char schoolType;
 
@@ -373,32 +279,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         @Override
-        protected Void doInBackground(String... urls) {
+        protected String doInBackground(String... urls) {
+            HttpURLConnection connection = null;
+            BufferedReader reader = null;
+            try {
+                URL url = new URL(urls[0]);
+                connection = (HttpURLConnection) url.openConnection();
+                connection.connect(); //connecting directly to server
 
-            String returnedJson = receiveJSON(urls[0]);
+                InputStream stream = connection.getInputStream(); //response from server is input stream
 
-            //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
-            switch (apiType) {
-                case R.string.CRIME: {
-                    //PARSE CRIME DATA
-                    parseCrimeData(returnedJson);
-                    break;
+                reader = new BufferedReader(new InputStreamReader(stream)); //buffered reader helps to read the input stream
+                StringBuffer buffer = new StringBuffer();
+                String line = "";
+                while ((line = reader.readLine()) != null) {
+                    buffer.append(line);
                 }
-                case R.string.SCHOOL: {
-                    //PARSE SCHOOL DATA
-                    parseSchoolData(returnedJson, schoolType);
-                    break;
+                String returnedJson = buffer.toString();
+
+                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
+                switch (apiType) {
+                    case R.string.CRIME: {
+                        //PARSE CRIME DATA
+                        parseCrimeData(returnedJson);
+                        break;
+                    }
+                    case R.string.SCHOOL: {
+                        //PARSE SCHOOL DATA
+                        parseSchoolData(returnedJson, schoolType);
+                        break;
+                    }
+                }
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (connection != null) {
+                    connection.disconnect();
+                }
+                try {
+                    if (reader != null) {
+                        reader.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
-
-
-            return null;
+            return null; //IF IT DOESN'T MAKE A CONNECTION TO SERVER, RETURN NULL
         }
 
-
-
         @Override
-        protected void onPostExecute(Void s) {
+        protected void onPostExecute(String s) {
             super.onPostExecute(s);
 
             //CODE TO HANDLE THE MAIN THREAD UI
