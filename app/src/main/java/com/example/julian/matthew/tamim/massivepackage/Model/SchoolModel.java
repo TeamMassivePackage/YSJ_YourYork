@@ -1,5 +1,7 @@
 package com.example.julian.matthew.tamim.massivepackage.Model;
 
+import com.google.android.gms.maps.model.LatLng;
+
 /**
  * Created by Julian on 25/11/2015.
  */
@@ -10,6 +12,15 @@ public class SchoolModel {
     private String schoolName;
     private String location;
     private String ward;
+    private LatLng coordinates;
+
+    public LatLng getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(LatLng coordinates) {
+        this.coordinates = coordinates;
+    }
 
     public int getId() {
         return id;

@@ -17,7 +17,6 @@ import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -139,6 +138,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
                     schoolModel.setWard(finalObject.getString("WARD"));
 
+                    StringBuffer queryString = new StringBuffer(schoolModel.getSchoolName() + " " + schoolModel.getLocation());
+                    String refined = queryString.toString();
+                    String finalQuery = refined.replaceAll("\\p{Z}", "+").replaceAll(",","");
+
+                    String googleQuery = "https://maps.googleapis.com/maps/api/place/textsearch/json?query="+finalQuery+
+                            "&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM";
+                    String googlePlacesJson = receiveJSON(googleQuery);
+                    LatLng schoolLocation = parseGooglePlacesData(googlePlacesJson);
+
+                    schoolModel.setCoordinates(schoolLocation);
+
+                    if(schoolModel.getSchoolName().equals("St Pauls CE Primary")){
+                        schoolModel.setLocation("St Pauls Terrace, Watson St, Holgate Road, York, YO24 4BJ");
+                    }
+
                     //StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
                     //query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
                     //GOOGLE PLACES API
@@ -162,15 +176,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     //ADD SCHOOL OBJECT TO SCHOOL LIST
                     schoolModelList.add(schoolModel);
                 }
-                String googlePlacesJson = receiveJSON("https://maps.googleapis.com/maps/api/place/textsearch/json?query=Clifton+With+Rawcliffe+Primary+Rawcliffe+Lane+Clifton+Without+York+YO30+5TA&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM");
+
 
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
-    private void parseGooglePlacesData(){
 
+    private void showSchoolDataJSON(){
+        for(int i = 0; i <schoolModelList.size(); i++){
+            Log.e("Show school data json:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
+            Marker schoolM = mMap.addMarker(new MarkerOptions()
+                    .position(schoolModelList.get(i).getCoordinates())
+                    .title(schoolModelList.get(i).getSchoolName())
+                    .snippet(schoolModelList.get(i).getLocation())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+            schoolMarkers.add(schoolM);
+        }
+    }
+
+    private LatLng parseGooglePlacesData(String returnedJson){
+        LatLng finalLocation = null;
+        try {
+            JSONObject parentObject = new JSONObject(returnedJson);
+            JSONArray resultsArray = parentObject.getJSONArray("results");
+            for(int i = 0; i < resultsArray.length(); i++){
+                JSONObject finalObject = resultsArray.getJSONObject(i);
+                JSONObject geometry = finalObject.getJSONObject("geometry");
+                JSONObject location = geometry.getJSONObject("location");
+                Double lat = location.getDouble("lat");
+                Double lng = location.getDouble("lng");
+                finalLocation = new LatLng(lat,lng);
+            }
+            return finalLocation;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     private void parseCrimeData(String returnedJson) {
@@ -204,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    private void showCrimeData() {
+    private void showCrimeDataJSON() {
         for (int i = 0; i < crimeModelList.size(); i++) {
             Double locationLat = Double.parseDouble(crimeModelList.get(i).getLatitude());
             Double locationLng = Double.parseDouble(crimeModelList.get(i).getLongitude());
@@ -221,9 +264,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void hideCrimeData() {
-        for (int i = 0; i < crimeMarkers.size(); i++) {
-            crimeMarkers.get(i).setVisible(false);
+    private void toggleMapMarkers(int type, String show){
+        switch (type){
+            case R.string.CRIME:{
+                if(show.equals("s")){
+                    for(Marker m : crimeMarkers){
+                        m.setVisible(true);
+                    }
+                }
+                else if(show.equals("h")){
+                    for(Marker m : crimeMarkers){
+                        m.setVisible(false);
+                    }
+                }
+            }
+            case R.string.SCHOOL:{
+                if(show.equals("s")){
+                    for(Marker m : schoolMarkers){
+                        m.setVisible(true);
+                    }
+                }
+                else if(show.equals("h")){
+                    for(Marker m : schoolMarkers){
+                        m.setVisible(false);
+                    }
+                }
+            }
         }
     }
 
@@ -278,10 +344,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+                    toggleMapMarkers(R.string.SCHOOL, "s");
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.SCHOOL, "h");
                     return true;
                 }
             case R.id.catchment:
@@ -298,10 +366,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+                    toggleMapMarkers(R.string.CRIME, "s");
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.CRIME,"h");
                     return true;
                 }
             case R.id.calling:
@@ -384,12 +454,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 case R.string.CRIME: {
                     //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
                     Log.e("On Post ececute CRIME: ", "SHOWING CRIME DATA ------>>>>");
-                    showCrimeData();
+                    showCrimeDataJSON();
                     break;
                 }
                 case R.string.SCHOOL: {
                     //PARSE SCHOOL DATA
                     Log.e("On Post SCHOOL: ", "oighogihfriughirughlfghglskfjjkfghhfglkjdfhg");
+                    showSchoolDataJSON();
                     break;
                 }
             }
