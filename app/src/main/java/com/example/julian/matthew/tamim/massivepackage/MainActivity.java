@@ -79,8 +79,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //SET UP HTTP URL CONNECTION
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
-        //new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
-
+        new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
     }
 
     private String receiveJSON(String urls){
@@ -138,20 +137,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
                     schoolModel.setWard(finalObject.getString("WARD"));
 
+                    if(schoolModel.getSchoolName().equalsIgnoreCase("St Pauls CE Primary")){
+                        schoolModel.setLocation("St Pauls Terrace, Watson St, Holgate Road, York, YO24 4BJ");
+                    }
+
                     StringBuffer queryString = new StringBuffer(schoolModel.getSchoolName() + " " + schoolModel.getLocation());
                     String refined = queryString.toString();
                     String finalQuery = refined.replaceAll("\\p{Z}", "+").replaceAll(",","");
 
-                    String googleQuery = "https://maps.googleapis.com/maps/api/place/textsearch/json?query="+finalQuery+
+
+                    //-----------------------CALLS GOOGLE PLACES API-------------------------------------------
+
+                    /*String googleQuery = "https://maps.googleapis.com/maps/api/place/textsearch/json?query="+finalQuery+
                             "&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM";
                     String googlePlacesJson = receiveJSON(googleQuery);
                     LatLng schoolLocation = parseGooglePlacesData(googlePlacesJson);
 
-                    schoolModel.setCoordinates(schoolLocation);
+                    schoolModel.setCoordinates(schoolLocation);*/
 
-                    if(schoolModel.getSchoolName().equals("St Pauls CE Primary")){
-                        schoolModel.setLocation("St Pauls Terrace, Watson St, Holgate Road, York, YO24 4BJ");
-                    }
+                    //-----------------------END CALL TO GOOGLE PLACES API-------------------------------------------
 
                     //StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
                     //query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
@@ -186,13 +190,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void showSchoolDataJSON(){
         for(int i = 0; i <schoolModelList.size(); i++){
-            Log.e("Show school data json:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
-            Marker schoolM = mMap.addMarker(new MarkerOptions()
-                    .position(schoolModelList.get(i).getCoordinates())
-                    .title(schoolModelList.get(i).getSchoolName())
-                    .snippet(schoolModelList.get(i).getLocation())
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
-            schoolMarkers.add(schoolM);
+            if(schoolModelList.get(i).getCoordinates() != null){
+                Log.e("Show school data json:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
+                Marker schoolM = mMap.addMarker(new MarkerOptions()
+                        .position(schoolModelList.get(i).getCoordinates())
+                        .title(schoolModelList.get(i).getSchoolName())
+                        .snippet(schoolModelList.get(i).getLocation())
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+                schoolMarkers.add(schoolM);
+            }
         }
     }
 
