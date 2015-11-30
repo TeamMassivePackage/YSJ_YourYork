@@ -9,6 +9,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -77,9 +78,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         navigationView.setNavigationItemSelectedListener(this);
 
         //SET UP HTTP URL CONNECTION
-        new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
-        new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
+        //new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
+        String schoolJson = loadJSONFromAsset();
+        Log.e("Returned primary json:", schoolJson);
+
+
+    }
+
+    public String loadJSONFromAsset() {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open("Primary_Schools.geojson"), "UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line + "\n");
+            }
+
+            return sb.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private String receiveJSON(String urls){
@@ -198,6 +219,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .snippet(schoolModelList.get(i).getLocation())
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
                 schoolMarkers.add(schoolM);
+            }
+            else{
+                Log.e("Null school result:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
             }
         }
     }
