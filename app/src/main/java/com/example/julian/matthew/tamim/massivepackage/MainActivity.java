@@ -1,6 +1,7 @@
 package com.example.julian.matthew.tamim.massivepackage;
 
 
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.julian.matthew.tamim.massivepackage.Model.ColdCallingModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,6 +26,8 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,6 +50,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
     private List<SchoolModel> schoolModelList;
+    private List<ColdCallingModel> coldCallingModelList;
 
     private List<Marker> crimeMarkers = new ArrayList<>();
     private List<Marker> schoolMarkers = new ArrayList<>();
@@ -55,15 +60,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        String schoolJson = loadJSONFromAsset(R.string.SCHOOL, 'p');
-        String secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, 's');
+        String schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
+        String secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
+
+        String coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
 
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
+            Log.e("line", l);
+        }*/
+
+        /*for (String l: coldCallingJson.split(System.getProperty("line.separator"))) {
             Log.e("line", l);
         }*/
         schoolModelList = new ArrayList<>();
         parseSchoolData(schoolJson, 'p');
         parseSchoolData(secondarySchoolSJson, 's');
+
+        coldCallingModelList = new ArrayList<>();
+        parseColdCallingJson(coldCallingJson);
+
 
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
@@ -85,23 +100,79 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //SET UP NAVIGATION DRAWER AND DRAWER ITEM SELECTED LISTENER
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-        //SET UP HTTP URL CONNECTION
-
-        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
-
     }
 
-    public String loadJSONFromAsset(int type, char schoolType) {
+    private void parseColdCallingJson(String returnedJson) {
+        try {
+            JSONObject parentObject = new JSONObject(returnedJson);
+            JSONArray featuresArray = parentObject.getJSONArray("features");
+            for(int i = 0; i < featuresArray.length(); i++){
+                ColdCallingModel coldCallingModel = new ColdCallingModel();
+
+                JSONObject finalObject = featuresArray.getJSONObject(i);
+                JSONObject propertiresObject = finalObject.getJSONObject("properties");
+                coldCallingModel.setId(propertiresObject.getInt("OBJECTID"));
+                coldCallingModel.setZones(propertiresObject.getString("ZONES"));
+                coldCallingModel.setWard(propertiresObject.getString("WARD"));
+
+                JSONObject geometryObject = finalObject.getJSONObject("geometry");
+                JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
+                List<ColdCallingModel.Coordinates> coordinatesList = new ArrayList<>();
+                for(int j = 0; j < coordinatesArray.length(); j++){
+                    JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
+                    for(int k = 0; k < intermediateArray.length(); k++){
+                        JSONArray finalArray = intermediateArray.getJSONArray(k);
+                        Double lat = finalArray.getDouble(1);
+                        Double lng = finalArray.getDouble(0);
+                        ColdCallingModel.Coordinates temp = new ColdCallingModel.Coordinates();
+                        temp.setLat(lat);
+                        temp.setLng(lng);
+                        coordinatesList.add(temp);
+                    }
+                }
+
+                coldCallingModel.setCoordinatesList(coordinatesList);
+
+                //ADD FINAL COLD COLLING OBJECT TO LIST
+                coldCallingModelList.add(coldCallingModel);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showColdCallingData(){
+        for(int i = 0; i < coldCallingModelList.size(); i++){
+            ColdCallingModel ccm = coldCallingModelList.get(i);
+            List<LatLng> pointList = new ArrayList<>();
+            for(int j = 0; j < ccm.getCoordinatesList().size(); j++){
+
+                //Log.e("Cold Calling data:", ccm.getZones() + " - " + ccm.getCoordinatesList().get(j).getLat() + ", " + ccm.getCoordinatesList().get(j).getLng());
+                pointList.add(new LatLng(ccm.getCoordinatesList().get(j).getLat(), ccm.getCoordinatesList().get(j).getLng()));
+            }
+            Polygon polygon = mMap.addPolygon(new PolygonOptions()
+                    .addAll(pointList)
+                    .strokeColor(Color.BLUE)
+                    .fillColor(Color.rgb(152,213,237)));
+        }
+
+        //polygon.setPoints(pointList);
+    }
+
+    public String loadJSONFromAsset(int type, String schoolType) {
         String bufferedReaderFile = null;
         switch (type) {
             case R.string.SCHOOL: {
-                if (schoolType == 'p') {
+                if (schoolType.equalsIgnoreCase("p")) {
                     bufferedReaderFile = "Primary_Schools.geojson";
-                } else if (schoolType == 's') {
+                } else if (schoolType.equalsIgnoreCase("s")) {
                     bufferedReaderFile = "Secondary_Schools.geojson";
                 }
 
+                break;
+            }
+            case R.string.COLD_CALLING:{
+                bufferedReaderFile = "Cold_Calling_Controlled_Zones.geojson";
                 break;
             }
         }
@@ -268,11 +339,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (show.equals("s")) {
                     for (Marker m : crimeMarkers) {
                         m.setVisible(true);
+
                     }
+                    break;
                 } else if (show.equals("h")) {
                     for (Marker m : crimeMarkers) {
                         m.setVisible(false);
                     }
+                    break;
                 }
             }
             case R.string.SCHOOL: {
@@ -280,10 +354,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     for (Marker m : schoolMarkers) {
                         m.setVisible(true);
                     }
+                    break;
                 } else if (show.equals("h")) {
                     for (Marker m : schoolMarkers) {
                         m.setVisible(false);
                     }
+                    break;
                 }
             }
         }
@@ -398,6 +474,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
         // Add a marker in Sydney and move the camera
         LatLng york = new LatLng(53.958576, -1.087460);
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
@@ -405,6 +482,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
 
         showSchoolDataJSON();
+        showColdCallingData();
 
     }
 
