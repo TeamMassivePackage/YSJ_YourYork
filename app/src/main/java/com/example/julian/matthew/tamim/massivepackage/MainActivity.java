@@ -55,13 +55,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        String schoolJson = loadJSONFromAsset(R.string.SCHOOL);
+        String schoolJson = loadJSONFromAsset(R.string.SCHOOL, 'p');
+        String secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, 's');
 
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
             Log.e("line", l);
         }*/
+        schoolModelList = new ArrayList<>();
         parseSchoolData(schoolJson, 'p');
-
+        parseSchoolData(secondarySchoolSJson, 's');
 
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
@@ -85,17 +87,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         navigationView.setNavigationItemSelectedListener(this);
 
         //SET UP HTTP URL CONNECTION
-        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
-        //new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
 
     }
 
-    public String loadJSONFromAsset(int type) {
+    public String loadJSONFromAsset(int type, char schoolType) {
         String bufferedReaderFile = null;
-        switch (type){
+        switch (type) {
             case R.string.SCHOOL: {
-                bufferedReaderFile = "Primary_Schools.geojson";
+                if (schoolType == 'p') {
+                    bufferedReaderFile = "Primary_Schools.geojson";
+                } else if (schoolType == 's') {
+                    bufferedReaderFile = "Secondary_Schools.geojson";
+                }
+
                 break;
             }
         }
@@ -114,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private String receiveJSON(String urls){
+    private String receiveJSON(String urls) {
         HttpURLConnection connection = null;
         BufferedReader reader = null;
         URL url = null;
@@ -155,10 +161,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void parseSchoolData(String returnedJson, char schoolType) {
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
-            schoolModelList = new ArrayList<>();
+
 
             JSONArray featuresArray = parentObject.getJSONArray("features");
-            for(int i = 0; i < featuresArray.length(); i++){
+            for (int i = 0; i < featuresArray.length(); i++) {
                 JSONObject finalObject = featuresArray.getJSONObject(i);
                 SchoolModel schoolModel = new SchoolModel();
 
@@ -172,10 +178,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 JSONObject geometryObject = finalObject.getJSONObject("geometry");
                 JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
-                for(int j = 0; j < coordinatesArray.length(); j++){
+                for (int j = 0; j < coordinatesArray.length(); j++) {
                     JSONArray finalArray = coordinatesArray.getJSONArray(j);
-                    for (int k = 0; k < finalArray.length(); k++){
-                        LatLng temp = new LatLng(finalArray.getDouble(1),finalArray.getDouble(0));
+                    for (int k = 0; k < finalArray.length(); k++) {
+                        LatLng temp = new LatLng(finalArray.getDouble(1), finalArray.getDouble(0));
                         schoolModel.setCoordinates(temp);
                     }
                 }
@@ -186,41 +192,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    private void showSchoolDataJSON(){
-        for(int i = 0; i <schoolModelList.size(); i++){
-            if(schoolModelList.get(i).getCoordinates() != null){
-                Log.e("Show school data json:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
-                Marker schoolM = mMap.addMarker(new MarkerOptions()
-                        .position(schoolModelList.get(i).getCoordinates())
-                        .title(schoolModelList.get(i).getSchoolName())
-                        .snippet(schoolModelList.get(i).getLocation())
-                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
-                schoolMarkers.add(schoolM);
-            }
-            else{
+    private void showSchoolDataJSON() {
+        for (int i = 0; i < schoolModelList.size(); i++) {
+            if (schoolModelList.get(i).getCoordinates() != null) {
+                //Log.e("Show school data json:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
+                if (schoolModelList.get(i).getSchoolType() == 'p') {
+                    Marker schoolM = mMap.addMarker(new MarkerOptions()
+                            .position(schoolModelList.get(i).getCoordinates())
+                            .title(schoolModelList.get(i).getSchoolName())
+                            .snippet(schoolModelList.get(i).getLocation())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+                    schoolMarkers.add(schoolM);
+                } else if (schoolModelList.get(i).getSchoolType() == 's') {
+                    Marker schoolM = mMap.addMarker(new MarkerOptions()
+                            .position(schoolModelList.get(i).getCoordinates())
+                            .title(schoolModelList.get(i).getSchoolName())
+                            .snippet(schoolModelList.get(i).getLocation())
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                    schoolMarkers.add(schoolM);
+                }
+
+            } else {
                 Log.e("Null school result:", schoolModelList.get(i).getSchoolName() + " >> " + schoolModelList.get(i).getLocation() + " --- " + schoolModelList.get(i).getCoordinates());
             }
         }
-    }
-
-    private LatLng parseGooglePlacesData(String returnedJson){
-        LatLng finalLocation = null;
-        try {
-            JSONObject parentObject = new JSONObject(returnedJson);
-            JSONArray resultsArray = parentObject.getJSONArray("results");
-            for(int i = 0; i < resultsArray.length(); i++){
-                JSONObject finalObject = resultsArray.getJSONObject(i);
-                JSONObject geometry = finalObject.getJSONObject("geometry");
-                JSONObject location = geometry.getJSONObject("location");
-                Double lat = location.getDouble("lat");
-                Double lng = location.getDouble("lng");
-                finalLocation = new LatLng(lat,lng);
-            }
-            return finalLocation;
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     private void parseCrimeData(String returnedJson) {
@@ -248,10 +243,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-        //RETURN AN ARRAYLIST OF CRIME OBJECTS
-
-
     }
 
     private void showCrimeDataJSON() {
@@ -266,33 +257,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .position(new LatLng(locationLat, locationLng))
                     .title(category)
                     .snippet(streetName + "\nReported On: " + month)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             crimeMarkers.add(crimeM);
         }
     }
 
-    private void toggleMapMarkers(int type, String show){
-        switch (type){
-            case R.string.CRIME:{
-                if(show.equals("s")){
-                    for(Marker m : crimeMarkers){
+    private void toggleMapMarkers(int type, String show) {
+        switch (type) {
+            case R.string.CRIME: {
+                if (show.equals("s")) {
+                    for (Marker m : crimeMarkers) {
                         m.setVisible(true);
                     }
-                }
-                else if(show.equals("h")){
-                    for(Marker m : crimeMarkers){
+                } else if (show.equals("h")) {
+                    for (Marker m : crimeMarkers) {
                         m.setVisible(false);
                     }
                 }
             }
-            case R.string.SCHOOL:{
-                if(show.equals("s")){
-                    for(Marker m : schoolMarkers){
+            case R.string.SCHOOL: {
+                if (show.equals("s")) {
+                    for (Marker m : schoolMarkers) {
                         m.setVisible(true);
                     }
-                }
-                else if(show.equals("h")){
-                    for(Marker m : schoolMarkers){
+                } else if (show.equals("h")) {
+                    for (Marker m : schoolMarkers) {
                         m.setVisible(false);
                     }
                 }
@@ -378,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
-                    toggleMapMarkers(R.string.CRIME,"h");
+                    toggleMapMarkers(R.string.CRIME, "h");
                     return true;
                 }
             case R.id.calling:
@@ -408,7 +397,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
+        new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         // Add a marker in Sydney and move the camera
         LatLng york = new LatLng(53.958576, -1.087460);
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
@@ -416,6 +405,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
 
         showSchoolDataJSON();
+
     }
 
     public class JSONTask extends AsyncTask<String, String, Void> {
@@ -443,14 +433,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     parseCrimeData(returnedJson);
                     break;
                 }
-                case R.string.SCHOOL: {
-                    //PARSE SCHOOL DATA
-                    parseSchoolData(returnedJson, schoolType);
-                    break;
-                }
             }
-
-
             return null;
         }
 
@@ -464,12 +447,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
                     Log.e("On Post ececute CRIME: ", "SHOWING CRIME DATA ------>>>>");
                     showCrimeDataJSON();
-                    break;
-                }
-                case R.string.SCHOOL: {
-                    //PARSE SCHOOL DATA
-                    Log.e("On Post SCHOOL: ", "oighogihfriughirughlfghglskfjjkfghhfglkjdfhg");
-                    showSchoolDataJSON();
                     break;
                 }
             }
