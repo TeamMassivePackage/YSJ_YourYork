@@ -55,7 +55,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
-        //MapsInitializer.initialize(getApplicationContext());
+        String schoolJson = loadJSONFromAsset(R.string.SCHOOL);
+
+        /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
+            Log.e("line", l);
+        }*/
+        parseSchoolData(schoolJson, 'p');
+
+
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -81,15 +88,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
         //new JSONTask(R.string.SCHOOL, 'p').execute("https://data.yorkopendata.org/api/action/datastore_search?resource_id=8b8f1ad2-5faf-4238-a1d4-bdd4ce9a3401");
-        String schoolJson = loadJSONFromAsset();
-        Log.e("Returned primary json:", schoolJson);
-
 
     }
 
-    public String loadJSONFromAsset() {
+    public String loadJSONFromAsset(int type) {
+        String bufferedReaderFile = null;
+        switch (type){
+            case R.string.SCHOOL: {
+                bufferedReaderFile = "Primary_Schools.geojson";
+                break;
+            }
+        }
         try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open("Primary_Schools.geojson"), "UTF-8"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(getAssets().open(bufferedReaderFile), "UTF-8"));
             StringBuilder sb = new StringBuilder();
             String line = null;
             while ((line = reader.readLine()) != null) {
@@ -145,64 +156,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
             schoolModelList = new ArrayList<>();
-            if (parentObject.getString("success").equals("true")) {
-                JSONObject resultObject = parentObject.getJSONObject("result");
-                JSONArray recordsArray = resultObject.getJSONArray("records");
-                for (int i = 0; i < recordsArray.length(); i++) {
-                    JSONObject finalObject = recordsArray.getJSONObject(i);
-                    SchoolModel schoolModel = new SchoolModel();
-                    schoolModel.setId(finalObject.getInt("_id"));
-                    schoolModel.setSchoolType(schoolType);
-                    schoolModel.setWebsite(finalObject.getString("WEBSITE"));
-                    schoolModel.setSchoolName(finalObject.getString("SCHNAME"));
-                    schoolModel.setLocation(finalObject.getString("LV_DETAILS"));
-                    schoolModel.setWard(finalObject.getString("WARD"));
 
-                    if(schoolModel.getSchoolName().equalsIgnoreCase("St Pauls CE Primary")){
-                        schoolModel.setLocation("St Pauls Terrace, Watson St, Holgate Road, York, YO24 4BJ");
+            JSONArray featuresArray = parentObject.getJSONArray("features");
+            for(int i = 0; i < featuresArray.length(); i++){
+                JSONObject finalObject = featuresArray.getJSONObject(i);
+                SchoolModel schoolModel = new SchoolModel();
+
+                JSONObject propertiesObject = finalObject.getJSONObject("properties");
+                schoolModel.setId(propertiesObject.getInt("OBJECTID_1"));
+                schoolModel.setSchoolType(schoolType);
+                schoolModel.setSchoolName(propertiesObject.getString("SCHNAME"));
+                schoolModel.setWard(propertiesObject.getString("WARD"));
+                schoolModel.setLocation(propertiesObject.getString("LV_DETAILS"));
+                schoolModel.setWebsite(propertiesObject.getString("WEBSITE"));
+
+                JSONObject geometryObject = finalObject.getJSONObject("geometry");
+                JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
+                for(int j = 0; j < coordinatesArray.length(); j++){
+                    JSONArray finalArray = coordinatesArray.getJSONArray(j);
+                    for (int k = 0; k < finalArray.length(); k++){
+                        LatLng temp = new LatLng(finalArray.getDouble(1),finalArray.getDouble(0));
+                        schoolModel.setCoordinates(temp);
                     }
-
-                    StringBuffer queryString = new StringBuffer(schoolModel.getSchoolName() + " " + schoolModel.getLocation());
-                    String refined = queryString.toString();
-                    String finalQuery = refined.replaceAll("\\p{Z}", "+").replaceAll(",","");
-
-
-                    //-----------------------CALLS GOOGLE PLACES API-------------------------------------------
-
-                    /*String googleQuery = "https://maps.googleapis.com/maps/api/place/textsearch/json?query="+finalQuery+
-                            "&key=AIzaSyDq4-FhI_2J5cNlHMo82iB7-DO2di5uhHM";
-                    String googlePlacesJson = receiveJSON(googleQuery);
-                    LatLng schoolLocation = parseGooglePlacesData(googlePlacesJson);
-
-                    schoolModel.setCoordinates(schoolLocation);*/
-
-                    //-----------------------END CALL TO GOOGLE PLACES API-------------------------------------------
-
-                    //StringBuffer query = new StringBuffer(finalObject.getString("SCHNAME") + " " + finalObject.getString("LV_DETAILS"));
-                    //query = new StringBuffer("Clifton With Rawcliffe Primary Rawcliffe Lane, Clifton Without, York, YO30 5TA");
-                    //GOOGLE PLACES API
-                    /*PendingResult<AutocompletePredictionBuffer> result =
-                            Places.GeoDataApi.getAutocompletePredictions(mGoogleApiClient, query.toString(),
-                                    null, null);
-                    Log.e("School JSON query", query.toString());
-                    AutocompletePredictionBuffer autocompletePredictions = result.await();
-                    Log.e("predictions size:", "" + autocompletePredictions.getCount());
-                    if (autocompletePredictions.getStatus().isSuccess()) {
-                        Log.e("Place query Error: ", autocompletePredictions.getStatus().getStatusMessage());
-                        autocompletePredictions.release();
-                        return;
-                    }
-                    for (AutocompletePrediction p : autocompletePredictions) {
-                        Log.e("School JSON result", p.getDescription());
-                    }
-
-                    autocompletePredictions.release();*/
-
-                    //ADD SCHOOL OBJECT TO SCHOOL LIST
-                    schoolModelList.add(schoolModel);
                 }
-
-
+                schoolModelList.add(schoolModel);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -437,6 +414,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(york));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
+
+        showSchoolDataJSON();
     }
 
     public class JSONTask extends AsyncTask<String, String, Void> {
