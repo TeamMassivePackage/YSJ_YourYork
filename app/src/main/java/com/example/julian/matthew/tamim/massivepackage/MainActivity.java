@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             JSONObject parentObject = new JSONObject(returnedJson);
             JSONArray featuresArray = parentObject.getJSONArray("features");
             for(int i = 0; i < featuresArray.length(); i++){
+                //Log.e("Loop i:", ""+i + ", length: " + featuresArray.length());
                 CatchmentModel catchmentModel = new CatchmentModel();
                 JSONObject finalObject = featuresArray.getJSONObject(i);
                 JSONObject propertiresObject = finalObject.getJSONObject("properties");
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             temp.setLat(lat);
                             temp.setLng(lng);
                             coordinatesList.add(temp);
-                            Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
+                            //Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
                         }
 
                     }
@@ -151,8 +152,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //ADD FINAL CATCHMENT OBJECT TO CATCHMENT LIST
                 catchmentModelList.add(catchmentModel);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Log.e("test", "exception " + e);
         }
     }
 
