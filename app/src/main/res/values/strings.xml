@@ -17,4 +17,5 @@
     <string name="CRIME">Crime</string>
     <string name="SCHOOL">School</string>
     <string name="COLD_CALLING">Cold Calling Zones</string>
+    <string name="CATCHMENT">Catchment</string>
 </resources>

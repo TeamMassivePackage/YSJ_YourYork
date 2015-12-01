@@ -10,11 +10,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.JsonReader;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.example.julian.matthew.tamim.massivepackage.Model.CatchmentModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.ColdCallingModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.CrimeModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.SchoolModel;
@@ -53,10 +53,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<CrimeModel> crimeModelList;
     private List<SchoolModel> schoolModelList;
     private List<ColdCallingModel> coldCallingModelList;
+    private List<CatchmentModel> catchmentModelList;
 
     private List<Marker> crimeMarkers = new ArrayList<>();
     private List<Marker> schoolMarkers = new ArrayList<>();
-    private List<Polyline> polygonList = new ArrayList<>();
+    private List<Polyline> coldCallingPolylineList = new ArrayList<>();
+    private List<Polygon> catchmentPolygonList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,11 +70,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         String coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
 
+        //String primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
+        String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
             Log.e("line", l);
         }*/
 
-        /*for (String l: coldCallingJson.split(System.getProperty("line.separator"))) {
+        /*for (String l: secondaryCatchmentJson.split(System.getProperty("line.separator"))) {
             Log.e("line", l);
         }*/
         schoolModelList = new ArrayList<>();
@@ -82,6 +87,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         coldCallingModelList = new ArrayList<>();
         parseColdCallingJson(coldCallingJson);
 
+        catchmentModelList = new ArrayList<>();
+        //parseCatchmentData(primaryCatchmentJson, 'p');
+        parseCatchmentData(secondaryCatchmentJson, 's');
 
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
@@ -103,6 +111,65 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //SET UP NAVIGATION DRAWER AND DRAWER ITEM SELECTED LISTENER
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void parseCatchmentData(String returnedJson, char schoolType) {
+        try {
+            JSONObject parentObject = new JSONObject(returnedJson);
+            JSONArray featuresArray = parentObject.getJSONArray("features");
+            for(int i = 0; i < featuresArray.length(); i++){
+                CatchmentModel catchmentModel = new CatchmentModel();
+                JSONObject finalObject = featuresArray.getJSONObject(i);
+                JSONObject propertiresObject = finalObject.getJSONObject("properties");
+                catchmentModel.setId(propertiresObject.getInt("OBJECTID"));
+                catchmentModel.setSchoolName(propertiresObject.getString("SCHNAME"));
+                catchmentModel.setWebsite(propertiresObject.getString("WEBSITE"));
+                catchmentModel.setSchoolType(schoolType);
+
+                JSONObject geometryObject = finalObject.getJSONObject("geometry");
+                JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
+                List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
+                for(int j = 0; j < coordinatesArray.length(); j++){
+                    JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
+                    for(int k = 0; k < intermediateArray.length(); k++){
+                        JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
+                        for(int l = 0; l < intermediateArray2.length(); l++){
+                            JSONArray finalArray = intermediateArray2.getJSONArray(l);
+                            Double lat = finalArray.getDouble(1);
+                            Double lng = finalArray.getDouble(0);
+                            CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
+                            temp.setLat(lat);
+                            temp.setLng(lng);
+                            coordinatesList.add(temp);
+                            Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
+                        }
+
+                    }
+                }
+                catchmentModel.setCoordinatesList(coordinatesList);
+
+                //ADD FINAL CATCHMENT OBJECT TO CATCHMENT LIST
+                catchmentModelList.add(catchmentModel);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void showCatchmentData(){
+        for(int i = 0; i < catchmentModelList.size(); i++){
+            CatchmentModel cm = catchmentModelList.get(i);
+            List<LatLng> pointList = new ArrayList<>();
+            for(int j = 0; j < cm.getCoordinatesList().size(); j++){
+                pointList.add(new LatLng(cm.getCoordinatesList().get(j).getLat(), cm.getCoordinatesList().get(j).getLng()));
+            }
+            Polygon polygon = mMap.addPolygon(new PolygonOptions()
+                    .addAll(pointList)
+                    .strokeWidth(5)
+                    .strokeColor(Color.RED)
+                    .fillColor(Color.rgb(152, 213, 237)));
+            catchmentPolygonList.add(polygon);
+        }
     }
 
     private void parseColdCallingJson(String returnedJson) {
@@ -158,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .width(5)
                     .color(Color.BLUE));
                     //.fillColor(Color.rgb(152, 213, 237)));
-            polygonList.add(polygon);
+            coldCallingPolylineList.add(polygon);
         }
 
         //polygon.setPoints(pointList);
@@ -178,6 +245,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             case R.string.COLD_CALLING:{
                 bufferedReaderFile = "Cold_Calling_Controlled_Zones.geojson";
+                break;
+            }
+            case R.string.CATCHMENT: {
+                if (schoolType.equalsIgnoreCase("p")) {
+                    bufferedReaderFile = "Primary_school_catchments.geojson";
+                } else if (schoolType.equalsIgnoreCase("s")) {
+                    bufferedReaderFile = "Secondary_school_catchments.geojson";
+                }
+
                 break;
             }
         }
@@ -369,12 +445,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             case R.string.COLD_CALLING: {
                 if (show.equals("s")) {
-                    for (Polyline p: polygonList) {
+                    for (Polyline p: coldCallingPolylineList) {
                         p.setVisible(true);
                     }
                     break;
                 } else if (show.equals("h")) {
-                    for (Polyline p: polygonList) {
+                    for (Polyline p: coldCallingPolylineList) {
                         p.setVisible(false);
                     }
                     break;
@@ -503,6 +579,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         showSchoolDataJSON();
         showColdCallingData();
+        showCatchmentData();
 
     }
 
