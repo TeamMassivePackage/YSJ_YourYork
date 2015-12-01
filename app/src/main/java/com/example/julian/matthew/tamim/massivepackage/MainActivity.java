@@ -28,6 +28,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private List<Marker> crimeMarkers = new ArrayList<>();
     private List<Marker> schoolMarkers = new ArrayList<>();
+    private List<Polyline> polygonList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,10 +153,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 //Log.e("Cold Calling data:", ccm.getZones() + " - " + ccm.getCoordinatesList().get(j).getLat() + ", " + ccm.getCoordinatesList().get(j).getLng());
                 pointList.add(new LatLng(ccm.getCoordinatesList().get(j).getLat(), ccm.getCoordinatesList().get(j).getLng()));
             }
-            Polygon polygon = mMap.addPolygon(new PolygonOptions()
+            Polyline polygon = mMap.addPolyline(new PolylineOptions()
                     .addAll(pointList)
-                    .strokeColor(Color.BLUE)
-                    .fillColor(Color.rgb(152,213,237)));
+                    .width(5)
+                    .color(Color.BLUE));
+                    //.fillColor(Color.rgb(152, 213, 237)));
+            polygonList.add(polygon);
         }
 
         //polygon.setPoints(pointList);
@@ -272,14 +277,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .position(schoolModelList.get(i).getCoordinates())
                             .title(schoolModelList.get(i).getSchoolName())
                             .snippet(schoolModelList.get(i).getLocation())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN)));
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_tag_faces_black_18dp)));
                     schoolMarkers.add(schoolM);
                 } else if (schoolModelList.get(i).getSchoolType() == 's') {
                     Marker schoolM = mMap.addMarker(new MarkerOptions()
                             .position(schoolModelList.get(i).getCoordinates())
                             .title(schoolModelList.get(i).getSchoolName())
                             .snippet(schoolModelList.get(i).getLocation())
-                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA)));
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_black_18dp)));
                     schoolMarkers.add(schoolM);
                 }
 
@@ -358,6 +363,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else if (show.equals("h")) {
                     for (Marker m : schoolMarkers) {
                         m.setVisible(false);
+                    }
+                    break;
+                }
+            }
+            case R.string.COLD_CALLING: {
+                if (show.equals("s")) {
+                    for (Polyline p: polygonList) {
+                        p.setVisible(true);
+                    }
+                    break;
+                } else if (show.equals("h")) {
+                    for (Polyline p: polygonList) {
+                        p.setVisible(false);
                     }
                     break;
                 }
@@ -450,10 +468,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+                    toggleMapMarkers(R.string.COLD_CALLING, "s");
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.COLD_CALLING, "h");
                     return true;
                 }
             default:
