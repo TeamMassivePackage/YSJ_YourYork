@@ -8,4 +8,5 @@
     <string name="CATCHMENT">Catchment</string>
     <string name="PRIMARY">Primary School</string>
     <string name="SECONDARY">Secondary School</string>
+    <string name="property_search">Property Search</string>
 </resources>

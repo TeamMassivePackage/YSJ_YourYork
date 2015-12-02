@@ -38,7 +38,9 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
 
-        <activity android:name=".PropertyActivity"></activity>
+        <activity android:name=".PropertyActivity"
+            android:label="@string/property_search"
+            android:theme="@style/AppTheme"/>
     </application>
 
 </manifest>
