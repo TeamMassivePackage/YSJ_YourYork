@@ -41,6 +41,60 @@
                     android:textSize="50px"
                     android:paddingLeft="25dp"
                     android:text="RADIUS"/>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_radius">
+                </Spinner>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:id="@+id/beds"
+                    android:textSize="50px"
+                    android:paddingLeft="25dp"
+                    android:text="BEDS"/>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_beds_min">
+                </Spinner>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_beds_max">
+                </Spinner>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:id="@+id/price"
+                    android:textSize="50px"
+                    android:paddingLeft="25dp"
+                    android:text="PRICE"/>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_price_min">
+                </Spinner>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_price_max">
+                </Spinner>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:id="@+id/added"
+                    android:textSize="50px"
+                    android:paddingLeft="25dp"
+                    android:text="ADDED"/>
+                <Spinner
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/spinner_added">
+                </Spinner>
 
             </LinearLayout>
 
