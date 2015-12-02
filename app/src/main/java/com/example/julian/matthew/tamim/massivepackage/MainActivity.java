@@ -546,6 +546,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         break;
                     }
                 }
+                break;
             }
             case R.string.COLD_CALLING: {
                 if (show.equals("s")) {
@@ -610,16 +611,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //Need to reference the API's or map here. Not entirely sure so will continue with this later
 
         switch (item.getItemId()) {
-            case R.id.schools:
+            case R.id.primary:
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
-                    //toggleMapMarkers(R.string.SCHOOL, "s");
+                    toggleMapMarkers(R.string.SCHOOL, "s", R.string.PRIMARY);
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
-                    //toggleMapMarkers(R.string.SCHOOL, "h");
+                    toggleMapMarkers(R.string.SCHOOL, "h", R.string.PRIMARY);
+                    return true;
+                }
+            case R.id.secondary:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    toggleMapMarkers(R.string.SCHOOL, "s", R.string.SECONDARY);
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.SCHOOL, "h", R.string.SECONDARY);
                     return true;
                 }
             case R.id.catchment:

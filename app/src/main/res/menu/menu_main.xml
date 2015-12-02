@@ -15,8 +15,14 @@
             <group android:checkableBehavior="all">
 
                 <item
-                    android:id="@+id/schools"
-                    android:title="@string/Schools"
+                    android:id="@+id/primary"
+                    android:title="Primary School"
+                    android:checked="true"
+                    android:orderInCategory="1" app:showAsAction="never" />
+
+                <item
+                    android:id="@+id/secondary"
+                    android:title="Secondary School"
                     android:checked="true"
                     android:orderInCategory="1" app:showAsAction="never" />
 
