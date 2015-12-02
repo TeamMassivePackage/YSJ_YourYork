@@ -6,4 +6,6 @@
     <string name="SCHOOL">School</string>
     <string name="COLD_CALLING">Cold Calling Zones</string>
     <string name="CATCHMENT">Catchment</string>
+    <string name="PRIMARY">Primary School</string>
+    <string name="SECONDARY">Secondary School</string>
 </resources>
