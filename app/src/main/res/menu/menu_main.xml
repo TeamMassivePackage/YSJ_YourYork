@@ -27,8 +27,14 @@
                     android:orderInCategory="1" app:showAsAction="never" />
 
                 <item
-                    android:id="@+id/catchment"
-                    android:title="@string/catchment"
+                    android:id="@+id/primaryCatchment"
+                    android:title="Primary Catchment"
+                    android:checked="true"
+                    android:orderInCategory="2" app:showAsAction="never" />
+
+                <item
+                    android:id="@+id/secondaryCatchment"
+                    android:title="Secondary Catchment"
                     android:checked="true"
                     android:orderInCategory="2" app:showAsAction="never" />
 
