@@ -65,13 +65,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        //GET PRIMARY AND SECONDARY JSON FROM FILES
         String schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
         String secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
 
+
+        //GET COLD CALLING JSON FROM FILE
         String coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
 
-        //String primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
-        String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+
+        //GET CATCHMENT JSON FROM FILES
+        String primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
+        //String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
 
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
             Log.e("line", l);
@@ -80,16 +85,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         /*for (String l: secondaryCatchmentJson.split(System.getProperty("line.separator"))) {
             Log.e("line", l);
         }*/
+
+        //PARSE PRIMARY AND SECONDARY SCHOOL DATA
         schoolModelList = new ArrayList<>();
         parseSchoolData(schoolJson, 'p');
         parseSchoolData(secondarySchoolSJson, 's');
 
+
+        //PARSE COLD CALLING DATA
         coldCallingModelList = new ArrayList<>();
         parseColdCallingJson(coldCallingJson);
 
+
+        //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
         catchmentModelList = new ArrayList<>();
-        //parseCatchmentData(primaryCatchmentJson, 'p');
-        parseCatchmentData(secondaryCatchmentJson, 's');
+        parseCatchmentData(primaryCatchmentJson, 'p');
+        //parseCatchmentData(secondaryCatchmentJson, 's');
 
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
@@ -129,25 +140,81 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 JSONObject geometryObject = finalObject.getJSONObject("geometry");
                 JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
-                List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
-                for(int j = 0; j < coordinatesArray.length(); j++){
-                    JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
-                    for(int k = 0; k < intermediateArray.length(); k++){
-                        JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
-                        for(int l = 0; l < intermediateArray2.length(); l++){
-                            JSONArray finalArray = intermediateArray2.getJSONArray(l);
-                            Double lat = finalArray.getDouble(1);
-                            Double lng = finalArray.getDouble(0);
-                            CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
-                            temp.setLat(lat);
-                            temp.setLng(lng);
-                            coordinatesList.add(temp);
-                            //Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
+                String polygonType = geometryObject.getString("type");
+                if(schoolType == 'p'){
+                    //Log.e("This primary school:", ""+i + catchmentModel.getSchoolName());
+                    List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
+                    for(int j = 0; j < coordinatesArray.length(); j++){
+                        JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
+                        if(polygonType.equalsIgnoreCase("Polygon")){
+                            for(int k = 0; k < intermediateArray.length(); k++){
+                                JSONArray finalArray = intermediateArray.getJSONArray(k);
+                                Double lat = finalArray.getDouble(1);
+                                Double lng = finalArray.getDouble(0);
+                                CatchmentModel.Coordinates temp =  new CatchmentModel.Coordinates();
+                                temp.setLat(lat);
+                                temp.setLng(lng);
+                                coordinatesList.add(temp);
+                            }
+                        }
+                        else if(polygonType.equalsIgnoreCase("MultiPolygon")){
+                            for(int k = 0; k < intermediateArray.length(); k++){
+                                JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
+                                for(int l = 0; l < intermediateArray2.length(); l++){
+                                    JSONArray finalArray = intermediateArray2.getJSONArray(l);
+                                    Double lat = finalArray.getDouble(1);
+                                    Double lng = finalArray.getDouble(0);
+                                    CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
+                                    temp.setLat(lat);
+                                    temp.setLng(lng);
+                                    coordinatesList.add(temp);
+                                    //Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
+                                }
+
+                            }
                         }
 
                     }
+                    catchmentModel.setCoordinatesList(coordinatesList);
                 }
-                catchmentModel.setCoordinatesList(coordinatesList);
+                else if(schoolType == 's'){
+                    //Log.e("This secondary school:", ""+i + catchmentModel.getSchoolName());
+                    List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
+                    for(int j = 0; j < coordinatesArray.length(); j++){
+                        JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
+                        if(polygonType.equalsIgnoreCase("Polygon")){
+                            for(int k = 0; k < intermediateArray.length(); k++){
+                                JSONArray finalArray = intermediateArray.getJSONArray(k);
+                                Double lat = finalArray.getDouble(1);
+                                Double lng = finalArray.getDouble(0);
+                                CatchmentModel.Coordinates temp =  new CatchmentModel.Coordinates();
+                                temp.setLat(lat);
+                                temp.setLng(lng);
+                                coordinatesList.add(temp);
+                            }
+                        }
+                        else if(polygonType.equalsIgnoreCase("MultiPolygon")){
+                            for(int k = 0; k < intermediateArray.length(); k++){
+                                JSONArray intermediateArray2 = intermediateArray.getJSONArray(0); //TESTING HERE
+                                for(int l = 0; l < intermediateArray2.length(); l++){
+                                    JSONArray finalArray = intermediateArray2.getJSONArray(l);
+                                    Double lat = finalArray.getDouble(1);
+                                    Double lng = finalArray.getDouble(0);
+                                    CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
+                                    temp.setLat(lat);
+                                    temp.setLng(lng);
+                                    coordinatesList.add(temp);
+                                    //Log.e("School:", catchmentModel.getSchoolName() + " ->> " + temp.getLat()  + ", " +  temp.getLng());
+                                }
+                            }
+
+                        }
+
+                    }
+                    catchmentModel.setCoordinatesList(coordinatesList);
+                }
+
+
 
                 //ADD FINAL CATCHMENT OBJECT TO CATCHMENT LIST
                 catchmentModelList.add(catchmentModel);
