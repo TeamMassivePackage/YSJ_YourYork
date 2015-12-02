@@ -18,13 +18,15 @@
                     android:id="@+id/primary"
                     android:title="Primary School"
                     android:checked="true"
-                    android:orderInCategory="1" app:showAsAction="never" />
+                    android:orderInCategory="1" app:showAsAction="never"
+                    android:icon="@drawable/ic_school_red_600_18dp"/>
 
                 <item
                     android:id="@+id/secondary"
                     android:title="Secondary School"
                     android:checked="true"
-                    android:orderInCategory="1" app:showAsAction="never" />
+                    android:orderInCategory="1" app:showAsAction="never"
+                    android:icon="@drawable/ic_school_deep_purple_a700_18dp"/>
 
                 <item
                     android:id="@+id/primaryCatchment"

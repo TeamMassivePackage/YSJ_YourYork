@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //GET CATCHMENT JSON FROM FILES
         String primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
-        //String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+        String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
 
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
             Log.e("line", l);
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
         catchmentModelList = new ArrayList<>();
         parseCatchmentData(primaryCatchmentJson, 'p');
-        //parseCatchmentData(secondaryCatchmentJson, 's');
+        parseCatchmentData(secondaryCatchmentJson, 's');
 
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .addAll(pointList)
                         .strokeWidth(5)
                         .strokeColor(Color.RED)
-                        .fillColor(Color.rgb(152, 213, 237)));
+                        .fillColor(Color.rgb(208,247,198)));
                 primaryCatchmentPolygonList.add(polygon);
             }
             else if(cm.getSchoolType() == 's'){
@@ -250,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .addAll(pointList)
                         .strokeWidth(5)
                         .strokeColor(Color.RED)
-                        .fillColor(Color.rgb(152, 213, 237)));
+                        .fillColor(Color.rgb(239,201,245)));
                 secondaryCatchmentPolygonList.add(polygon);
             }
 
@@ -438,14 +438,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             .position(schoolModelList.get(i).getCoordinates())
                             .title(schoolModelList.get(i).getSchoolName())
                             .snippet(schoolModelList.get(i).getLocation())
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_tag_faces_black_18dp)));
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_red_600_18dp)));
                     primarySchoolMarkers.add(schoolM);
                 } else if (schoolModelList.get(i).getSchoolType() == 's') {
                     Marker schoolM = mMap.addMarker(new MarkerOptions()
                             .position(schoolModelList.get(i).getCoordinates())
                             .title(schoolModelList.get(i).getSchoolName())
                             .snippet(schoolModelList.get(i).getLocation())
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_black_18dp)));
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_school_deep_purple_a700_18dp)));
                     secondarySchoolMarkers.add(schoolM);
                 }
 
