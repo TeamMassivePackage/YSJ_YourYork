@@ -1,6 +1,7 @@
 package com.example.julian.matthew.tamim.massivepackage;
 
 
+import android.app.ProgressDialog;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -48,6 +49,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
 
+    private ProgressDialog dialog;
     private Toolbar toolbar;
     private GoogleMap mMap;
     private List<CrimeModel> crimeModelList;
@@ -66,6 +68,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        dialog = new ProgressDialog(this);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.setMessage("Loading, Please Wait...");
+        dialog.show();
 
         //GET PRIMARY AND SECONDARY JSON FROM FILES
         String schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
@@ -197,7 +205,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         }
                         else if(polygonType.equalsIgnoreCase("MultiPolygon")){
                             for(int k = 0; k < intermediateArray.length(); k++){
-                                JSONArray intermediateArray2 = intermediateArray.getJSONArray(0); //TESTING HERE
+                                JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
                                 for(int l = 0; l < intermediateArray2.length(); l++){
                                     JSONArray finalArray = intermediateArray2.getJSONArray(l);
                                     Double lat = finalArray.getDouble(1);
@@ -781,6 +789,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(Void s) {
             super.onPostExecute(s);
 
+            dialog.dismiss();
             //CODE TO HANDLE THE MAIN THREAD UI
             switch (apiType) {
                 case R.string.CRIME: {
