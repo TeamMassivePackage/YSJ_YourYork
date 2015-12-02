@@ -529,7 +529,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                             break;
                         }
-                        break;
+                        return;
                     }
                     case R.string.SECONDARY: {
                         if (show.equals("s")) {
@@ -539,6 +539,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             break;
                         } else if (show.equals("h")) {
                             for (Marker m : secondarySchoolMarkers) {
+                                m.setVisible(false);
+                            }
+                            break;
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+
+            case R.string.CATCHMENT: {
+                switch (schoolType){
+                    case R.string.PRIMARY: {
+                        if (show.equals("s")) {
+                            for (Polygon m : primaryCatchmentPolygonList) {
+                                m.setVisible(true);
+                            }
+                            break;
+                        } else if (show.equals("h")) {
+                            for (Polygon m : primaryCatchmentPolygonList) {
+                                m.setVisible(false);
+                            }
+                            break;
+                        }
+                        break;
+                    }
+                    case R.string.SECONDARY: {
+                        if (show.equals("s")) {
+                            for (Polygon m : secondaryCatchmentPolygonList) {
+                                m.setVisible(true);
+                            }
+                            break;
+                        } else if (show.equals("h")) {
+                            for (Polygon m : secondaryCatchmentPolygonList) {
                                 m.setVisible(false);
                             }
                             break;
@@ -608,7 +642,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        //Need to reference the API's or map here. Not entirely sure so will continue with this later
 
         switch (item.getItemId()) {
             case R.id.primary:
@@ -635,14 +668,29 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     toggleMapMarkers(R.string.SCHOOL, "h", R.string.SECONDARY);
                     return true;
                 }
-            case R.id.catchment:
+            case R.id.primaryCatchment:
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+                    toggleMapMarkers(R.string.CATCHMENT, "s", R.string.PRIMARY);
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.CATCHMENT, "h", R.string.PRIMARY);
+                    return true;
+                }
+
+            case R.id.secondaryCatchment:
+                if (!item.isChecked()) {
+                    item.setChecked(true);
+                    //Code here that will start displaying data
+                    toggleMapMarkers(R.string.CATCHMENT, "s", R.string.SECONDARY);
+                    return true;
+                } else {
+                    item.setChecked(false);
+                    //Code here that will stop displaying data
+                    toggleMapMarkers(R.string.CATCHMENT, "h", R.string.SECONDARY);
                     return true;
                 }
             case R.id.crime:
