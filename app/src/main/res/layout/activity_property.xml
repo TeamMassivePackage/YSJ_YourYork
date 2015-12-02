@@ -19,10 +19,32 @@
             android:layout_below="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="HEEEELLLLLLOOOOOO"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Enter A Location"
+                    android:inputType="text"
+                    android:paddingTop="14dp"
+                    android:paddingLeft="25dp"
+                    android:paddingRight="14dp"
+                    android:id="@+id/search_query"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary"
+                    android:id="@+id/radius"
+                    android:textSize="50px"
+                    android:paddingLeft="25dp"
+                    android:text="RADIUS"/>
+
+            </LinearLayout>
+
+
         </FrameLayout>
 
     </RelativeLayout>
