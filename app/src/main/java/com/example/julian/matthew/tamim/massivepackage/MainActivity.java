@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Marker> secondarySchoolMarkers = new ArrayList<>();
     private List<Polyline> coldCallingPolylineList = new ArrayList<>();
     private List<PolygonOptions> primaryCatchmentPolygonList = new ArrayList<>();
-    private List<Polygon> secondaryCatchmentPolygonList = new ArrayList<>();
+    private List<PolygonOptions> secondaryCatchmentPolygonList = new ArrayList<>();
 
     String schoolJson;
     String secondarySchoolSJson;
@@ -91,13 +91,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             schoolModelList = savedInstanceState.getParcelableArrayList("school");
             coldCallingModelList = savedInstanceState.getParcelableArrayList("coldCalling");
             catchmentModelList = savedInstanceState.getParcelableArrayList("catchment");
-
-
-            //showSchoolDataJSON();
-            //showColdCallingData();
-            //showCatchmentData();
-            //showCrimeDataJSON();
-
         }
         else{
             //GET PRIMARY AND SECONDARY JSON FROM FILES
@@ -163,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.e("Entered onSaveInstance:", "YESSSSSSSSSSSSSSSSSSSSSSS");
+
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("crime", crimeModelList);
         outState.putParcelableArrayList("school", schoolModelList);
@@ -292,11 +285,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for(int j = 0; j < cm.getCoordinatesList().size(); j++){
                     pointList.add(new LatLng(cm.getCoordinatesList().get(j).getLat(), cm.getCoordinatesList().get(j).getLng()));
                 }
-                Polygon polygon = mMap.addPolygon(new PolygonOptions()
+                PolygonOptions polygon = new PolygonOptions()
                         .addAll(pointList)
                         .strokeWidth(5)
                         .strokeColor(Color.RED)
-                        .fillColor(Color.rgb(239,201,245)));
+                        .fillColor(Color.rgb(239, 201, 245));
                 secondaryCatchmentPolygonList.add(polygon);
             }
 
@@ -599,11 +592,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (schoolType){
                     case R.string.PRIMARY: {
                         if (show.equals("s")) {
+                            Log.e("Show pri catch called:", "Value is show");
                             for (PolygonOptions m : primaryCatchmentPolygonList) {
                                 mMap.addPolygon(m);
+                                m.visible(true);
                             }
                             break;
                         } else if (show.equals("h")) {
+                            Log.e("Hide pri catch called:", "Value is hide");
                             for (PolygonOptions m : primaryCatchmentPolygonList) {
                                 m.visible(false);
                             }
@@ -613,13 +609,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     case R.string.SECONDARY: {
                         if (show.equals("s")) {
-                            for (Polygon m : secondaryCatchmentPolygonList) {
-                                m.setVisible(true);
+                            for (PolygonOptions m : secondaryCatchmentPolygonList) {
+                                mMap.addPolygon(m);
                             }
                             break;
                         } else if (show.equals("h")) {
-                            for (Polygon m : secondaryCatchmentPolygonList) {
-                                m.setVisible(false);
+                            for (PolygonOptions m : secondaryCatchmentPolygonList) {
+                                m.visible(false);
                             }
                             break;
                         }
@@ -720,7 +716,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
-
+                    Log.e("Tick primary catchment", "IT WORKS!!!!!");
                     toggleMapMarkers(R.string.CATCHMENT, "s", R.string.PRIMARY);
                     return true;
                 } else {
@@ -795,7 +791,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         showSchoolDataJSON();
         //showColdCallingData();
-        //showCatchmentData();
+        showCatchmentData();
 
 
         dialog.dismiss();
