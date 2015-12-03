@@ -31,13 +31,13 @@
                 <item
                     android:id="@+id/primaryCatchment"
                     android:title="Primary Catchment"
-                    android:checked="true"
+                    android:checked="false"
                     android:orderInCategory="2" app:showAsAction="never" />
 
                 <item
                     android:id="@+id/secondaryCatchment"
                     android:title="Secondary Catchment"
-                    android:checked="true"
+                    android:checked="false"
                     android:orderInCategory="2" app:showAsAction="never" />
 
                 <item
@@ -49,7 +49,7 @@
                 <item
                     android:id="@+id/calling"
                     android:title="@string/calling"
-                    android:checked="true"
+                    android:checked="false"
                     android:orderInCategory="4" app:showAsAction="never" />
 
             </group>

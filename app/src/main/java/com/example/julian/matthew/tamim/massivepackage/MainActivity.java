@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Marker> primarySchoolMarkers = new ArrayList<>();
     private List<Marker> secondarySchoolMarkers = new ArrayList<>();
     private List<Polyline> coldCallingPolylineList = new ArrayList<>();
-    private List<Polygon> primaryCatchmentPolygonList = new ArrayList<>();
+    private List<PolygonOptions> primaryCatchmentPolygonList = new ArrayList<>();
     private List<Polygon> secondaryCatchmentPolygonList = new ArrayList<>();
 
     String schoolJson;
@@ -93,11 +93,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             catchmentModelList = savedInstanceState.getParcelableArrayList("catchment");
 
 
-            showSchoolDataJSON();
-            showColdCallingData();
-            showCatchmentData();
-            showCrimeDataJSON();
-            dialog.dismiss();
+            //showSchoolDataJSON();
+            //showColdCallingData();
+            //showCatchmentData();
+            //showCrimeDataJSON();
+
         }
         else{
             //GET PRIMARY AND SECONDARY JSON FROM FILES
@@ -162,9 +162,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+    public void onSaveInstanceState(Bundle outState) {
         Log.e("Entered onSaveInstance:", "YESSSSSSSSSSSSSSSSSSSSSSS");
-        super.onSaveInstanceState(outState, outPersistentState);
+        super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("crime", crimeModelList);
         outState.putParcelableArrayList("school", schoolModelList);
         outState.putParcelableArrayList("coldCalling", coldCallingModelList);
@@ -280,11 +280,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 for(int j = 0; j < cm.getCoordinatesList().size(); j++){
                     pointList.add(new LatLng(cm.getCoordinatesList().get(j).getLat(), cm.getCoordinatesList().get(j).getLng()));
                 }
-                Polygon polygon = mMap.addPolygon(new PolygonOptions()
+                PolygonOptions polygon = new PolygonOptions()
                         .addAll(pointList)
                         .strokeWidth(5)
                         .strokeColor(Color.RED)
-                        .fillColor(Color.rgb(208,247,198)));
+                        .fillColor(Color.rgb(208, 247, 198));
                 primaryCatchmentPolygonList.add(polygon);
             }
             else if(cm.getSchoolType() == 's'){
@@ -599,13 +599,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 switch (schoolType){
                     case R.string.PRIMARY: {
                         if (show.equals("s")) {
-                            for (Polygon m : primaryCatchmentPolygonList) {
-                                m.setVisible(true);
+                            for (PolygonOptions m : primaryCatchmentPolygonList) {
+                                mMap.addPolygon(m);
                             }
                             break;
                         } else if (show.equals("h")) {
-                            for (Polygon m : primaryCatchmentPolygonList) {
-                                m.setVisible(false);
+                            for (PolygonOptions m : primaryCatchmentPolygonList) {
+                                m.visible(false);
                             }
                             break;
                         }
@@ -720,6 +720,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+
                     toggleMapMarkers(R.string.CATCHMENT, "s", R.string.PRIMARY);
                     return true;
                 } else {
@@ -793,11 +794,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
 
         showSchoolDataJSON();
-        showColdCallingData();
-        showCatchmentData();
+        //showColdCallingData();
+        //showCatchmentData();
 
 
-
+        dialog.dismiss();
 
 
     }
