@@ -1,9 +1,12 @@
 package com.example.julian.matthew.tamim.massivepackage.Model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * Created by Julian Limited on 25/11/2015.
  */
-public class CrimeModel {
+public class CrimeModel implements Parcelable {
     private int id;
     private String category;
     private String location_type;
@@ -11,6 +14,44 @@ public class CrimeModel {
     private String longitude;
     private String month;
     private String street_name;
+
+    public int describeContents() {
+        return 0;
+    }
+
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(id);
+        out.writeString(category);
+        out.writeString(location_type);
+        out.writeString(latitude);
+        out.writeString(longitude);
+        out.writeString(month);
+        out.writeString(street_name);
+    }
+
+    public static final Parcelable.Creator<CrimeModel> CREATOR = new Parcelable.Creator<CrimeModel>() {
+        public CrimeModel createFromParcel(Parcel in) {
+            return new CrimeModel(in);
+        }
+
+        public CrimeModel[] newArray(int size) {
+            return new CrimeModel[size];
+        }
+    };
+
+    public CrimeModel() {
+
+    }
+
+    private CrimeModel(Parcel in) {
+        id = in.readInt();
+        category = in.readString();
+        location_type = in.readString();
+        latitude = in.readString();
+        longitude = in.readString();
+        month = in.readString();
+        street_name = in.readString();
+    }
 
     public int getId() {
         return id;

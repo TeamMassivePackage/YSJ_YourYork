@@ -1,16 +1,56 @@
 package com.example.julian.matthew.tamim.massivepackage.Model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.util.List;
 
 /**
  * Created by julian.moses on 01/12/15.
  */
-public class CatchmentModel {
+public class CatchmentModel implements Parcelable {
     private int id;
     private String schoolName;
     private String website;
     private List<Coordinates> coordinatesList;
     private char schoolType;
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeInt(id);
+        out.writeString(schoolName);
+        out.writeString(website);
+        out.writeTypedList(coordinatesList);
+        out.writeInt(schoolType);
+    }
+
+    public static final Parcelable.Creator<CatchmentModel> CREATOR = new Parcelable.Creator<CatchmentModel>() {
+        public CatchmentModel createFromParcel(Parcel in) {
+            return new CatchmentModel(in);
+        }
+
+        public CatchmentModel[] newArray(int size) {
+            return new CatchmentModel[size];
+        }
+    };
+
+    public CatchmentModel() {
+
+    }
+
+    private CatchmentModel(Parcel in) {
+        id = in.readInt();
+        schoolName = in.readString();
+        website = in.readString();
+        in.readTypedList(coordinatesList,CatchmentModel.Coordinates.CREATOR);
+        schoolType =(char) in.readInt();
+    }
+
 
     public int getId() {
         return id;
@@ -52,7 +92,7 @@ public class CatchmentModel {
         this.schoolType = schoolType;
     }
 
-    public static class Coordinates{
+    public static class Coordinates implements Parcelable{
         private Double lat;
         private Double lng;
 
@@ -70,6 +110,36 @@ public class CatchmentModel {
 
         public void setLng(Double lng) {
             this.lng = lng;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            out.writeDouble(lat);
+            out.writeDouble(lng);
+        }
+
+        public static final Parcelable.Creator<Coordinates> CREATOR = new Parcelable.Creator<Coordinates>() {
+            public Coordinates createFromParcel(Parcel in) {
+                return new Coordinates(in);
+            }
+
+            public Coordinates[] newArray(int size) {
+                return new Coordinates[size];
+            }
+        };
+
+        public Coordinates() {
+
+        }
+
+        private Coordinates(Parcel in) {
+            lat = in.readDouble();
+            lng = in.readDouble();
         }
     }
 }

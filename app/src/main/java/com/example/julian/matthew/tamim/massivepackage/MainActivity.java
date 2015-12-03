@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -53,10 +54,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private ProgressDialog dialog;
     private Toolbar toolbar;
     private GoogleMap mMap;
-    private List<CrimeModel> crimeModelList;
-    private List<SchoolModel> schoolModelList;
-    private List<ColdCallingModel> coldCallingModelList;
-    private List<CatchmentModel> catchmentModelList;
+    private ArrayList<CrimeModel> crimeModelList;
+    private ArrayList<SchoolModel> schoolModelList;
+    private ArrayList<ColdCallingModel> coldCallingModelList;
+    private ArrayList<CatchmentModel> catchmentModelList;
 
     private List<Marker> crimeMarkers = new ArrayList<>();
     private List<Marker> primarySchoolMarkers = new ArrayList<>();
@@ -64,6 +65,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Polyline> coldCallingPolylineList = new ArrayList<>();
     private List<Polygon> primaryCatchmentPolygonList = new ArrayList<>();
     private List<Polygon> secondaryCatchmentPolygonList = new ArrayList<>();
+
+    String schoolJson;
+    String secondarySchoolSJson;
+    String coldCallingJson;
+    String primaryCatchmentJson;
+    String secondaryCatchmentJson;
+
+    boolean startFirstTime = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,18 +85,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dialog.setMessage("Loading, Please Wait...");
         dialog.show();
 
-        //GET PRIMARY AND SECONDARY JSON FROM FILES
-        String schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
-        String secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
+        if(savedInstanceState != null && savedInstanceState.getParcelableArrayList("crime") != null){
+            Log.e("saved instant state", "in if statement");
+            crimeModelList = savedInstanceState.getParcelableArrayList("crime");
+            schoolModelList = savedInstanceState.getParcelableArrayList("school");
+            coldCallingModelList = savedInstanceState.getParcelableArrayList("coldCalling");
+            catchmentModelList = savedInstanceState.getParcelableArrayList("catchment");
 
 
-        //GET COLD CALLING JSON FROM FILE
-        String coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
+            showSchoolDataJSON();
+            showColdCallingData();
+            showCatchmentData();
+            showCrimeDataJSON();
+            dialog.dismiss();
+        }
+        else{
+            //GET PRIMARY AND SECONDARY JSON FROM FILES
+            schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
+            secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
 
 
-        //GET CATCHMENT JSON FROM FILES
-        String primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
-        String secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+            //GET COLD CALLING JSON FROM FILE
+            coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
+
+
+            //GET CATCHMENT JSON FROM FILES
+            primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
+            secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+
+
 
         /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
             Log.e("line", l);
@@ -97,22 +123,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             Log.e("line", l);
         }*/
 
-        //PARSE PRIMARY AND SECONDARY SCHOOL DATA
-        schoolModelList = new ArrayList<>();
-        parseSchoolData(schoolJson, 'p');
-        parseSchoolData(secondarySchoolSJson, 's');
+            //PARSE PRIMARY AND SECONDARY SCHOOL DATA
+            schoolModelList = new ArrayList<>();
+            parseSchoolData(schoolJson, 'p');
+            parseSchoolData(secondarySchoolSJson, 's');
 
 
-        //PARSE COLD CALLING DATA
-        coldCallingModelList = new ArrayList<>();
-        parseColdCallingJson(coldCallingJson);
+            //PARSE COLD CALLING DATA
+            coldCallingModelList = new ArrayList<>();
+            parseColdCallingJson(coldCallingJson);
 
 
-        //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
-        catchmentModelList = new ArrayList<>();
-        parseCatchmentData(primaryCatchmentJson, 'p');
-        parseCatchmentData(secondaryCatchmentJson, 's');
-
+            //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
+            catchmentModelList = new ArrayList<>();
+            parseCatchmentData(primaryCatchmentJson, 'p');
+            parseCatchmentData(secondaryCatchmentJson, 's');
+        }
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -134,6 +160,17 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
+        Log.e("Entered onSaveInstance:", "YESSSSSSSSSSSSSSSSSSSSSSS");
+        super.onSaveInstanceState(outState, outPersistentState);
+        outState.putParcelableArrayList("crime", crimeModelList);
+        outState.putParcelableArrayList("school", schoolModelList);
+        outState.putParcelableArrayList("coldCalling", coldCallingModelList);
+        outState.putParcelableArrayList("catchment", catchmentModelList);
+    }
+
 
     private void parseCatchmentData(String returnedJson, char schoolType) {
         try {
@@ -744,6 +781,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+
         mMap = googleMap;
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
@@ -757,7 +796,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         showColdCallingData();
         showCatchmentData();
 
+
+
+
+
     }
+
 
     public class JSONTask extends AsyncTask<String, String, Void> {
         int apiType;
@@ -792,7 +836,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         protected void onPostExecute(Void s) {
             super.onPostExecute(s);
 
-            dialog.dismiss();
+
             //CODE TO HANDLE THE MAIN THREAD UI
             switch (apiType) {
                 case R.string.CRIME: {
@@ -802,6 +846,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     break;
                 }
             }
+            dialog.dismiss();
         }
     }
 
