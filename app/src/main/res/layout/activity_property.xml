@@ -30,6 +30,7 @@
                     android:hint="Enter A Location"
                     android:inputType="text"
                     android:paddingTop="14dp"
+                    android:paddingBottom="14dp"
                     android:paddingLeft="25dp"
                     android:paddingRight="14dp"
                     android:id="@+id/search_query"/>
@@ -44,6 +45,7 @@
                 <Spinner
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingLeft="20dp"
                     android:id="@+id/spinner_radius">
                 </Spinner>
                 <TextView
