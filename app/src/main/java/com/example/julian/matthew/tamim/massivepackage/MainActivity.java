@@ -4,6 +4,7 @@ package com.example.julian.matthew.tamim.massivepackage;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -16,6 +17,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CatchmentModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.ColdCallingModel;
@@ -49,7 +53,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, NavigationView.OnNavigationItemSelectedListener, GoogleMap.InfoWindowAdapter {
 
     private ProgressDialog dialog;
     private Toolbar toolbar;
@@ -793,10 +797,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         showColdCallingData();
         showCatchmentData();
 
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                getInfoContents(marker);
+            }
+        });
 
         dialog.dismiss();
 
 
+    }
+
+    @Override
+    public View getInfoWindow(Marker marker) {
+        return null;
+    }
+
+    @Override
+    public View getInfoContents(Marker marker) {
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://reports.ofsted.gov.uk/"));
+                startActivity(browserIntent);
+            }
+        });
+        return null;
     }
 
 
