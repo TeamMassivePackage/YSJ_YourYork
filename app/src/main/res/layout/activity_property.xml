@@ -39,7 +39,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/colorPrimary"
                     android:id="@+id/radius"
-                    android:textSize="50px"
+                    android:textSize="30dp"
                     android:paddingLeft="25dp"
                     android:text="RADIUS"/>
                 <Spinner
@@ -53,7 +53,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/colorPrimary"
                     android:id="@+id/beds"
-                    android:textSize="50px"
+                    android:textSize="30dp"
                     android:paddingLeft="25dp"
                     android:text="BEDS"/>
                 <Spinner
@@ -71,7 +71,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/colorPrimary"
                     android:id="@+id/price"
-                    android:textSize="50px"
+                    android:textSize="30dp"
                     android:paddingLeft="25dp"
                     android:text="PRICE"/>
                 <Spinner
@@ -89,7 +89,7 @@
                     android:layout_height="wrap_content"
                     android:background="@color/colorPrimary"
                     android:id="@+id/added"
-                    android:textSize="50px"
+                    android:textSize="30dp"
                     android:paddingLeft="25dp"
                     android:text="ADDED"/>
                 <Spinner
@@ -104,10 +104,12 @@
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:id="@+id/btn_reset"
                         android:text="Reset"/>
                     <Button
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:id="@+id/btn_search"
                         android:text="Search"/>
                 </LinearLayout>
 
