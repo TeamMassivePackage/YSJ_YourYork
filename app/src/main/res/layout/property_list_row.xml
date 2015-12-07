@@ -30,7 +30,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="For Sale"
-                android:id="@+id/tv_type" />
+                android:id="@+id/tv_status" />
 
             <TextView
                 android:layout_width="wrap_content"

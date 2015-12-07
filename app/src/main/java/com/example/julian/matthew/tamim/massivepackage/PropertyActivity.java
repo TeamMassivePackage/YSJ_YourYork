@@ -80,7 +80,8 @@ public class PropertyActivity extends AppCompatActivity implements NavigationVie
         search.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                
+                Intent intent = new Intent(getApplicationContext(),PropertyListActivity.class);
+                startActivity(intent);
             }
         });
     }
