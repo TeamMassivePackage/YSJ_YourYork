@@ -654,12 +654,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        if(id == R.id.nav_home){
 
-        if (id == R.id.nav_house) {
+        } else if (id == R.id.nav_house) {
             // Handle the camera action
             Intent intent = new Intent(getApplicationContext(),PropertyActivity.class);
             startActivity(intent);
-        } else if (id == R.id.nav_gallery) {
+        } /*else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -669,7 +670,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         } else if (id == R.id.nav_send) {
 
-        }
+        }*/
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
