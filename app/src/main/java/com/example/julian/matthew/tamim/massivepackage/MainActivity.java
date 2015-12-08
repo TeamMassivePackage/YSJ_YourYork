@@ -867,10 +867,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
                     Log.e("On Post ececute CRIME: ", "SHOWING CRIME DATA ------>>>>");
                     showCrimeDataJSON();
+                    dialog.dismiss();
                     break;
                 }
             }
-            dialog.dismiss();
+
         }
     }
 

@@ -140,6 +140,7 @@
     <orderEntry type="library" exported="" name="play-services-appstate-8.3.0" level="project" />
     <orderEntry type="library" exported="" name="support-v4-22.2.1" level="project" />
     <orderEntry type="library" exported="" name="play-services-games-8.3.0" level="project" />
+    <orderEntry type="library" exported="" name="universal-image-loader-1.9.5" level="project" />
     <orderEntry type="library" exported="" name="play-services-gcm-8.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-safetynet-8.3.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-basement-8.3.0" level="project" />

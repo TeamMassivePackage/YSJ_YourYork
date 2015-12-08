@@ -1,6 +1,8 @@
 package com.example.julian.matthew.tamim.massivepackage;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -10,11 +12,24 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.PropertyModel;
 import com.google.gson.Gson;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.FailReason;
+import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,6 +49,7 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
 
     private Toolbar toolbar;
     private List<PropertyModel> propertyModelList;
+    private ListView lvProperties;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,6 +70,16 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view_property_list);
         navigationView.setNavigationItemSelectedListener(this);
         new JSONTask().execute("http://api.zoopla.co.uk/api/v1/property_listings.json?postcode=YO195RX&api_key=5a6jn94cwnbjgd6c6nmhtas3");
+
+        lvProperties = (ListView)findViewById(R.id.lvProperties);
+
+        DisplayImageOptions defaultOptions = new DisplayImageOptions.Builder()
+        .cacheInMemory(true).cacheOnDisk(true)
+        .build();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(getApplicationContext())
+        .defaultDisplayImageOptions(defaultOptions)
+        .build();
+        ImageLoader.getInstance().init(config); // Do it on Application start
     }
 
     @Override
@@ -149,9 +175,9 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
         return null; //RETURN NULL IF IT DOESNT WORK
     }
 
-    public class JSONTask extends AsyncTask<String, String, String> {
+    public class JSONTask extends AsyncTask<String, String, List<PropertyModel>> {
         @Override
-        protected String doInBackground(String... urls) {
+        protected List<PropertyModel> doInBackground(String... urls) {
             String returnedJson = receiveJSON(urls[0]);
             propertyModelList = new ArrayList<>();
             try {
@@ -164,17 +190,113 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
                     PropertyModel propertyModel = gson.fromJson(finalObject.toString(), PropertyModel.class);
                     propertyModelList.add(propertyModel);
                 }
-            } catch (JSONException e) {
+                return propertyModelList;
+            }
+            catch (JSONException e) {
                 e.printStackTrace();
             }
             return null;
         }
 
         @Override
-        protected void onPostExecute(String s) {
+        protected void onPostExecute(List<PropertyModel> s) {
             super.onPostExecute(s);
             Log.e("Property model list:", propertyModelList.toString());
+            PropertyAdapter adapter = new PropertyAdapter(getApplicationContext(), R.layout.property_list_row, s);
+            lvProperties.setAdapter(adapter);
 
+
+        }
+    }
+
+    public class PropertyAdapter extends ArrayAdapter{
+
+        private List<PropertyModel> propertyObjects;
+        private int resource;
+        private LayoutInflater inflater;
+        public PropertyAdapter(Context context, int resource, List<PropertyModel> objects) {
+            super(context, resource, objects);
+            propertyObjects = objects;
+            this.resource = resource;
+            inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if(convertView == null){
+                Log.e("Convertview is null","NUUUUUUUULLLLLLLLLLLLLLLLLLL");
+                convertView = inflater.inflate(resource,null);
+            }
+
+            ImageView iv_mainImage;
+            TextView tv_status;
+            TextView tv_address;
+            TextView tv_dateAdded;
+            ImageView iv_agentLogo;
+            TextView tv_price;
+
+
+            iv_mainImage = (ImageView)convertView.findViewById(R.id.iv_mainImage);
+            iv_agentLogo = (ImageView)convertView.findViewById(R.id.iv_agentLogo);
+
+            tv_status = (TextView)convertView.findViewById(R.id.tv_status);
+            tv_address = (TextView)convertView.findViewById(R.id.tv_address);
+            tv_dateAdded = (TextView)convertView.findViewById(R.id.tv_dateAdded);
+            tv_price = (TextView)convertView.findViewById(R.id.tv_price);
+            final ProgressBar progressBarMainImage = (ProgressBar)convertView.findViewById(R.id.progressBar);
+            final ProgressBar progressBarAgentImage = (ProgressBar)convertView.findViewById(R.id.progressBar2);
+
+
+            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getImage_url(), iv_mainImage, new ImageLoadingListener() {
+                @Override
+                public void onLoadingStarted(String imageUri, View view) {
+                    progressBarMainImage.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                    progressBarMainImage.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    progressBarMainImage.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onLoadingCancelled(String imageUri, View view) {
+                    progressBarMainImage.setVisibility(View.GONE);
+                }
+            }); // Default options will be used
+            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getAgent_logo(), iv_agentLogo, new ImageLoadingListener() {
+                @Override
+                public void onLoadingStarted(String imageUri, View view) {
+                    progressBarAgentImage.setVisibility(View.VISIBLE);
+                }
+
+                @Override
+                public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
+                    progressBarAgentImage.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    progressBarAgentImage.setVisibility(View.GONE);
+                }
+
+                @Override
+                public void onLoadingCancelled(String imageUri, View view) {
+                    progressBarAgentImage.setVisibility(View.GONE);
+                }
+            });
+
+            tv_status.setText(propertyObjects.get(position).getStatus());
+            tv_address.setText(propertyObjects.get(position).getDisplayable_address());
+            tv_dateAdded.setText(propertyObjects.get(position).getFirst_published_date());
+            tv_price.setText("£"+propertyObjects.get(position).getPrice());
+
+            return convertView;
         }
     }
 }
