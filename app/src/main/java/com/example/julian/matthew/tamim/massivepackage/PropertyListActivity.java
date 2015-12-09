@@ -69,7 +69,7 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
         //SET UP NAVIGATION DRAWER AND DRAWER ITEM SELECTED LISTENER
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view_property_list);
         navigationView.setNavigationItemSelectedListener(this);
-        new JSONTask().execute("http://api.zoopla.co.uk/api/v1/property_listings.json?postcode=YO195RX&api_key=5a6jn94cwnbjgd6c6nmhtas3");
+        new JSONTask().execute("http://api.zoopla.co.uk/api/v1/property_listings.json?postcode=YO19&api_key=5a6jn94cwnbjgd6c6nmhtas3");
 
         lvProperties = (ListView)findViewById(R.id.lvProperties);
 
@@ -224,31 +224,36 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
+
+            ViewHolder holder = null;
+
             if(convertView == null){
                 Log.e("Convertview is null","NUUUUUUUULLLLLLLLLLLLLLLLLLL");
                 convertView = inflater.inflate(resource,null);
+
+                holder = new ViewHolder();
+                holder.iv_mainImage = (ImageView)convertView.findViewById(R.id.iv_mainImage);
+                holder.iv_agentLogo = (ImageView)convertView.findViewById(R.id.iv_agentLogo);
+
+                holder.tv_status = (TextView)convertView.findViewById(R.id.tv_status);
+                holder.tv_address = (TextView)convertView.findViewById(R.id.tv_address);
+                holder.tv_dateAdded = (TextView)convertView.findViewById(R.id.tv_dateAdded);
+                holder.tv_price = (TextView)convertView.findViewById(R.id.tv_price);
+                convertView.setTag(holder);
+            }
+            else{
+                holder = (ViewHolder)convertView.getTag();
             }
 
-            ImageView iv_mainImage;
-            TextView tv_status;
-            TextView tv_address;
-            TextView tv_dateAdded;
-            ImageView iv_agentLogo;
-            TextView tv_price;
 
 
-            iv_mainImage = (ImageView)convertView.findViewById(R.id.iv_mainImage);
-            iv_agentLogo = (ImageView)convertView.findViewById(R.id.iv_agentLogo);
 
-            tv_status = (TextView)convertView.findViewById(R.id.tv_status);
-            tv_address = (TextView)convertView.findViewById(R.id.tv_address);
-            tv_dateAdded = (TextView)convertView.findViewById(R.id.tv_dateAdded);
-            tv_price = (TextView)convertView.findViewById(R.id.tv_price);
+
             final ProgressBar progressBarMainImage = (ProgressBar)convertView.findViewById(R.id.progressBar);
             final ProgressBar progressBarAgentImage = (ProgressBar)convertView.findViewById(R.id.progressBar2);
 
 
-            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getImage_url(), iv_mainImage, new ImageLoadingListener() {
+            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getImage_url(), holder.iv_mainImage, new ImageLoadingListener() {
                 @Override
                 public void onLoadingStarted(String imageUri, View view) {
                     progressBarMainImage.setVisibility(View.VISIBLE);
@@ -269,7 +274,7 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
                     progressBarMainImage.setVisibility(View.GONE);
                 }
             }); // Default options will be used
-            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getAgent_logo(), iv_agentLogo, new ImageLoadingListener() {
+            ImageLoader.getInstance().displayImage(propertyObjects.get(position).getAgent_logo(), holder.iv_agentLogo, new ImageLoadingListener() {
                 @Override
                 public void onLoadingStarted(String imageUri, View view) {
                     progressBarAgentImage.setVisibility(View.VISIBLE);
@@ -291,12 +296,26 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
                 }
             });
 
-            tv_status.setText(propertyObjects.get(position).getStatus());
-            tv_address.setText(propertyObjects.get(position).getDisplayable_address());
-            tv_dateAdded.setText(propertyObjects.get(position).getFirst_published_date());
-            tv_price.setText("£"+propertyObjects.get(position).getPrice());
+            if(propertyObjects.get(position).getStatus().equalsIgnoreCase("for_sale")){
+                holder.tv_status.setText("For Sale");
+            }
+            else{
+                holder.tv_status.setText(propertyObjects.get(position).getStatus());
+            }
+            holder.tv_address.setText(propertyObjects.get(position).getDisplayable_address());
+            holder.tv_dateAdded.setText(propertyObjects.get(position).getFirst_published_date());
+            holder.tv_price.setText("£"+propertyObjects.get(position).getPrice());
 
             return convertView;
+        }
+
+        class ViewHolder{
+            ImageView iv_mainImage;
+            TextView tv_status;
+            TextView tv_address;
+            TextView tv_dateAdded;
+            ImageView iv_agentLogo;
+            TextView tv_price;
         }
     }
 }
