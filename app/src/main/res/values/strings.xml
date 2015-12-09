@@ -21,16 +21,17 @@
     <string name="PRIMARY">Primary School</string>
     <string name="SECONDARY">Secondary School</string>
     <string name="property_search">Property Search</string>
+    <string name="search_results">Search Results</string>
 
     <string-array name="radius_array">
         <item>This area only</item>
         <item>Within 1/4 of a mile</item>
         <item>Within 1/2 of a mile</item>
-        <item>Within 1 of a mile</item>
-        <item>Within 2 of a mile</item>
-        <item>Within 3 of a mile</item>
-        <item>Within 4 of a mile</item>
-        <item>Within 5 of a mile</item>
+        <item>Within 1 mile</item>
+        <item>Within 2 miles</item>
+        <item>Within 3 miles</item>
+        <item>Within 4 miles</item>
+        <item>Within 5 miles</item>
     </string-array>
 
     <string-array name="bedsMin_array">

@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -58,6 +59,8 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //SETTING UP DRAWERLAYOUT AND TOGGLE
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout_property_list);
@@ -103,7 +106,8 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
         }
 
         else if (id == R.id.nav_house) {
-            // Handle the camera action
+            // Handle the home action
+            NavUtils.navigateUpFromSameTask(this); //GOES UP FROM THIS ACTIVITY TO THE PARENT ACTIVITY - PROPERTYACTIVITY. This should make navigation faster
         } /*else if (id == R.id.nav_gallery) {
 
         } else if (id == R.id.nav_slideshow) {

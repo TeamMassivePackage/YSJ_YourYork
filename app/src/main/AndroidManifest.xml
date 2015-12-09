@@ -43,7 +43,8 @@
             android:name=".PropertyActivity"
             android:label="@string/property_search"
             android:theme="@style/AppTheme" />
-        <activity android:name=".PropertyListActivity" >
+        <activity android:name=".PropertyListActivity" android:label="@string/search_results" android:theme="@style/AppTheme" >
+            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".PropertyActivity"/>
         </activity>
     </application>
 
