@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -18,8 +17,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CatchmentModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.ColdCallingModel;
@@ -70,11 +67,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private List<Polygon> primaryCatchmentPolygonList = new ArrayList<>();
     private List<Polygon> secondaryCatchmentPolygonList = new ArrayList<>();
 
-    String schoolJson;
-    String secondarySchoolSJson;
-    String coldCallingJson;
-    String primaryCatchmentJson;
-    String secondaryCatchmentJson;
+    private String schoolJson;
+    private String secondarySchoolSJson;
+    private String coldCallingJson;
+    private String primaryCatchmentJson;
+    private String secondaryCatchmentJson;
+    private boolean doNotParse = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,62 +85,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dialog.setMessage("Loading, Please Wait...");
         dialog.show();
 
-        if(savedInstanceState != null && savedInstanceState.getParcelableArrayList("crime") != null){
+
+        if (savedInstanceState != null && savedInstanceState.getParcelableArrayList("crime") != null) {
             Log.e("saved instant state", "in if statement");
             crimeModelList = savedInstanceState.getParcelableArrayList("crime");
             schoolModelList = savedInstanceState.getParcelableArrayList("school");
             coldCallingModelList = savedInstanceState.getParcelableArrayList("coldCalling");
             catchmentModelList = savedInstanceState.getParcelableArrayList("catchment");
+            doNotParse = true;
         }
-        else{
-            //GET PRIMARY AND SECONDARY JSON FROM FILES
-            schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
-            secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
 
-
-            //GET COLD CALLING JSON FROM FILE
-            coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
-
-
-            //GET CATCHMENT JSON FROM FILES
-            primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
-            secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
-
-
-
-        /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
-            Log.e("line", l);
-        }*/
-
-        /*for (String l: secondaryCatchmentJson.split(System.getProperty("line.separator"))) {
-            Log.e("line", l);
-        }*/
-
-            //PARSE PRIMARY AND SECONDARY SCHOOL DATA
-            schoolModelList = new ArrayList<>();
-            parseSchoolData(schoolJson, 'p');
-            parseSchoolData(secondarySchoolSJson, 's');
-
-
-            //PARSE COLD CALLING DATA
-            coldCallingModelList = new ArrayList<>();
-            parseColdCallingJson(coldCallingJson);
-
-
-            //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
-            catchmentModelList = new ArrayList<>();
-            parseCatchmentData(primaryCatchmentJson, 'p');
-            parseCatchmentData(secondaryCatchmentJson, 's');
-        }
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
         setSupportActionBar(toolbar);
 
-        //SETTING UP GOOGLE MAP FRAGMENT
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
 
         //SETTING UP DRAWERLAYOUT AND TOGGLE
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -154,6 +111,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //SET UP NAVIGATION DRAWER AND DRAWER ITEM SELECTED LISTENER
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        //SETTING UP GOOGLE MAP FRAGMENT
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
 
@@ -172,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
             JSONArray featuresArray = parentObject.getJSONArray("features");
-            for(int i = 0; i < featuresArray.length(); i++){
+            for (int i = 0; i < featuresArray.length(); i++) {
                 //Log.e("Loop i:", ""+i + ", length: " + featuresArray.length());
                 CatchmentModel catchmentModel = new CatchmentModel();
                 JSONObject finalObject = featuresArray.getJSONObject(i);
@@ -185,26 +147,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 JSONObject geometryObject = finalObject.getJSONObject("geometry");
                 JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
                 String polygonType = geometryObject.getString("type");
-                if(schoolType == 'p'){
+                if (schoolType == 'p') {
                     //Log.e("This primary school:", ""+i + catchmentModel.getSchoolName());
                     List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
-                    for(int j = 0; j < coordinatesArray.length(); j++){
+                    for (int j = 0; j < coordinatesArray.length(); j++) {
                         JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
-                        if(polygonType.equalsIgnoreCase("Polygon")){
-                            for(int k = 0; k < intermediateArray.length(); k++){
+                        if (polygonType.equalsIgnoreCase("Polygon")) {
+                            for (int k = 0; k < intermediateArray.length(); k++) {
                                 JSONArray finalArray = intermediateArray.getJSONArray(k);
                                 Double lat = finalArray.getDouble(1);
                                 Double lng = finalArray.getDouble(0);
-                                CatchmentModel.Coordinates temp =  new CatchmentModel.Coordinates();
+                                CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
                                 temp.setLat(lat);
                                 temp.setLng(lng);
                                 coordinatesList.add(temp);
                             }
-                        }
-                        else if(polygonType.equalsIgnoreCase("MultiPolygon")){
-                            for(int k = 0; k < intermediateArray.length(); k++){
+                        } else if (polygonType.equalsIgnoreCase("MultiPolygon")) {
+                            for (int k = 0; k < intermediateArray.length(); k++) {
                                 JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
-                                for(int l = 0; l < intermediateArray2.length(); l++){
+                                for (int l = 0; l < intermediateArray2.length(); l++) {
                                     JSONArray finalArray = intermediateArray2.getJSONArray(l);
                                     Double lat = finalArray.getDouble(1);
                                     Double lng = finalArray.getDouble(0);
@@ -220,27 +181,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                     }
                     catchmentModel.setCoordinatesList(coordinatesList);
-                }
-                else if(schoolType == 's'){
+                } else if (schoolType == 's') {
                     //Log.e("This secondary school:", ""+i + catchmentModel.getSchoolName());
                     List<CatchmentModel.Coordinates> coordinatesList = new ArrayList<>();
-                    for(int j = 0; j < coordinatesArray.length(); j++){
+                    for (int j = 0; j < coordinatesArray.length(); j++) {
                         JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
-                        if(polygonType.equalsIgnoreCase("Polygon")){
-                            for(int k = 0; k < intermediateArray.length(); k++){
+                        if (polygonType.equalsIgnoreCase("Polygon")) {
+                            for (int k = 0; k < intermediateArray.length(); k++) {
                                 JSONArray finalArray = intermediateArray.getJSONArray(k);
                                 Double lat = finalArray.getDouble(1);
                                 Double lng = finalArray.getDouble(0);
-                                CatchmentModel.Coordinates temp =  new CatchmentModel.Coordinates();
+                                CatchmentModel.Coordinates temp = new CatchmentModel.Coordinates();
                                 temp.setLat(lat);
                                 temp.setLng(lng);
                                 coordinatesList.add(temp);
                             }
-                        }
-                        else if(polygonType.equalsIgnoreCase("MultiPolygon")){
-                            for(int k = 0; k < intermediateArray.length(); k++){
+                        } else if (polygonType.equalsIgnoreCase("MultiPolygon")) {
+                            for (int k = 0; k < intermediateArray.length(); k++) {
                                 JSONArray intermediateArray2 = intermediateArray.getJSONArray(k);
-                                for(int l = 0; l < intermediateArray2.length(); l++){
+                                for (int l = 0; l < intermediateArray2.length(); l++) {
                                     JSONArray finalArray = intermediateArray2.getJSONArray(l);
                                     Double lat = finalArray.getDouble(1);
                                     Double lng = finalArray.getDouble(0);
@@ -257,7 +216,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     }
                     catchmentModel.setCoordinatesList(coordinatesList);
                 }
-
 
 
                 //ADD FINAL CATCHMENT OBJECT TO CATCHMENT LIST
@@ -268,12 +226,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void showCatchmentData(){
-        for(int i = 0; i < catchmentModelList.size(); i++){
+    public void showCatchmentData() {
+        for (int i = 0; i < catchmentModelList.size(); i++) {
             CatchmentModel cm = catchmentModelList.get(i);
-            if(cm.getSchoolType() == 'p'){
+            if (cm.getSchoolType() == 'p') {
                 List<LatLng> pointList = new ArrayList<>();
-                for(int j = 0; j < cm.getCoordinatesList().size(); j++){
+                for (int j = 0; j < cm.getCoordinatesList().size(); j++) {
                     pointList.add(new LatLng(cm.getCoordinatesList().get(j).getLat(), cm.getCoordinatesList().get(j).getLng()));
                 }
                 Polygon polygon = mMap.addPolygon(new PolygonOptions()
@@ -283,10 +241,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         .fillColor(Color.rgb(208, 247, 198)));
                 polygon.setVisible(false);
                 primaryCatchmentPolygonList.add(polygon);
-            }
-            else if(cm.getSchoolType() == 's'){
+            } else if (cm.getSchoolType() == 's') {
                 List<LatLng> pointList = new ArrayList<>();
-                for(int j = 0; j < cm.getCoordinatesList().size(); j++){
+                for (int j = 0; j < cm.getCoordinatesList().size(); j++) {
                     pointList.add(new LatLng(cm.getCoordinatesList().get(j).getLat(), cm.getCoordinatesList().get(j).getLng()));
                 }
                 Polygon polygon = mMap.addPolygon(new PolygonOptions()
@@ -305,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         try {
             JSONObject parentObject = new JSONObject(returnedJson);
             JSONArray featuresArray = parentObject.getJSONArray("features");
-            for(int i = 0; i < featuresArray.length(); i++){
+            for (int i = 0; i < featuresArray.length(); i++) {
                 ColdCallingModel coldCallingModel = new ColdCallingModel();
 
                 JSONObject finalObject = featuresArray.getJSONObject(i);
@@ -317,9 +274,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 JSONObject geometryObject = finalObject.getJSONObject("geometry");
                 JSONArray coordinatesArray = geometryObject.getJSONArray("coordinates");
                 List<ColdCallingModel.Coordinates> coordinatesList = new ArrayList<>();
-                for(int j = 0; j < coordinatesArray.length(); j++){
+                for (int j = 0; j < coordinatesArray.length(); j++) {
                     JSONArray intermediateArray = coordinatesArray.getJSONArray(j);
-                    for(int k = 0; k < intermediateArray.length(); k++){
+                    for (int k = 0; k < intermediateArray.length(); k++) {
                         JSONArray finalArray = intermediateArray.getJSONArray(k);
                         Double lat = finalArray.getDouble(1);
                         Double lng = finalArray.getDouble(0);
@@ -340,11 +297,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void showColdCallingData(){
-        for(int i = 0; i < coldCallingModelList.size(); i++){
+    public void showColdCallingData() {
+        for (int i = 0; i < coldCallingModelList.size(); i++) {
             ColdCallingModel ccm = coldCallingModelList.get(i);
             List<LatLng> pointList = new ArrayList<>();
-            for(int j = 0; j < ccm.getCoordinatesList().size(); j++){
+            for (int j = 0; j < ccm.getCoordinatesList().size(); j++) {
 
                 //Log.e("Cold Calling data:", ccm.getZones() + " - " + ccm.getCoordinatesList().get(j).getLat() + ", " + ccm.getCoordinatesList().get(j).getLng());
                 pointList.add(new LatLng(ccm.getCoordinatesList().get(j).getLat(), ccm.getCoordinatesList().get(j).getLng()));
@@ -353,7 +310,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .addAll(pointList)
                     .width(5)
                     .color(Color.BLUE));
-                    //.fillColor(Color.rgb(152, 213, 237)));
+            //.fillColor(Color.rgb(152, 213, 237)));
             polygon.setVisible(false);
             coldCallingPolylineList.add(polygon);
         }
@@ -373,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 break;
             }
-            case R.string.COLD_CALLING:{
+            case R.string.COLD_CALLING: {
                 bufferedReaderFile = "Cold_Calling_Controlled_Zones.geojson";
                 break;
             }
@@ -561,7 +518,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
             }
             case R.string.SCHOOL: {
-                switch (schoolType){
+                switch (schoolType) {
                     case R.string.PRIMARY: {
                         if (show.equals("s")) {
                             for (Marker m : primarySchoolMarkers) {
@@ -595,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             case R.string.CATCHMENT: {
-                switch (schoolType){
+                switch (schoolType) {
                     case R.string.PRIMARY: {
                         if (show.equals("s")) {
                             for (Polygon m : primaryCatchmentPolygonList) {
@@ -629,12 +586,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
             case R.string.COLD_CALLING: {
                 if (show.equals("s")) {
-                    for (Polyline p: coldCallingPolylineList) {
+                    for (Polyline p : coldCallingPolylineList) {
                         p.setVisible(true);
                     }
                     break;
                 } else if (show.equals("h")) {
-                    for (Polyline p: coldCallingPolylineList) {
+                    for (Polyline p : coldCallingPolylineList) {
                         p.setVisible(false);
                     }
                     break;
@@ -658,11 +615,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        if(id == R.id.nav_home){
+        if (id == R.id.nav_home) {
 
         } else if (id == R.id.nav_house) {
             // Handle the camera action
-            Intent intent = new Intent(getApplicationContext(),PropertyActivity.class);
+            Intent intent = new Intent(getApplicationContext(), PropertyActivity.class);
             startActivity(intent);
         } /*else if (id == R.id.nav_gallery) {
 
@@ -751,19 +708,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
-                    toggleMapMarkers(R.string.CRIME, "h",0);
+                    toggleMapMarkers(R.string.CRIME, "h", 0);
                     return true;
                 }
             case R.id.calling:
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
-                    toggleMapMarkers(R.string.COLD_CALLING, "s",0);
+                    toggleMapMarkers(R.string.COLD_CALLING, "s", 0);
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
-                    toggleMapMarkers(R.string.COLD_CALLING, "h",0);
+                    toggleMapMarkers(R.string.COLD_CALLING, "h", 0);
                     return true;
                 }
             default:
@@ -782,8 +739,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
-
-
         mMap = googleMap;
         new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
         //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
@@ -793,18 +748,65 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLng(york));
         mMap.animateCamera(CameraUpdateFactory.zoomTo(12));
 
-        showSchoolDataJSON();
-        showColdCallingData();
-        showCatchmentData();
-
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
                 getInfoContents(marker);
             }
         });
+        operate();
+        dialog.dismiss();
+    }
+
+    private void operate() {
+        if (doNotParse == false) {
+            setUp();
+        }
+
+        showSchoolDataJSON();
+        showColdCallingData();
+        showCatchmentData();
+    }
+
+    private void setUp() {
+        //GET PRIMARY AND SECONDARY JSON FROM FILES
+        schoolJson = loadJSONFromAsset(R.string.SCHOOL, "p");
+        secondarySchoolSJson = loadJSONFromAsset(R.string.SCHOOL, "s");
 
 
+        //GET COLD CALLING JSON FROM FILE
+        coldCallingJson = loadJSONFromAsset(R.string.COLD_CALLING, null);
+
+
+        //GET CATCHMENT JSON FROM FILES
+        primaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "p");
+        secondaryCatchmentJson = loadJSONFromAsset(R.string.CATCHMENT, "s");
+
+
+
+        /*for (String l: schoolJson.split(System.getProperty("line.separator"))){
+            Log.e("line", l);
+        }*/
+
+        /*for (String l: secondaryCatchmentJson.split(System.getProperty("line.separator"))) {
+            Log.e("line", l);
+        }*/
+
+        //PARSE PRIMARY AND SECONDARY SCHOOL DATA
+        schoolModelList = new ArrayList<>();
+        parseSchoolData(schoolJson, 'p');
+        parseSchoolData(secondarySchoolSJson, 's');
+
+
+        //PARSE COLD CALLING DATA
+        coldCallingModelList = new ArrayList<>();
+        parseColdCallingJson(coldCallingJson);
+
+
+        //PARSE CATCHMENT DATA FOR PRIMARY AND SECONDARY
+        catchmentModelList = new ArrayList<>();
+        parseCatchmentData(primaryCatchmentJson, 'p');
+        parseCatchmentData(secondaryCatchmentJson, 's');
     }
 
     @Override
@@ -867,7 +869,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     //HANDLE ARRAYLIST OF CRIME OBJECTS - CHANGE THE MAP VIEW
                     Log.e("On Post ececute CRIME: ", "SHOWING CRIME DATA ------>>>>");
                     showCrimeDataJSON();
-                    dialog.dismiss();
                     break;
                 }
             }
