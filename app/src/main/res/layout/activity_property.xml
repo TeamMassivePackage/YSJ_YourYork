@@ -7,119 +7,126 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
-    <RelativeLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.example.julian.matthew.tamim.massivepackage.MainActivity">
-
-        <include
-            android:id="@+id/app_bar"
-            layout="@layout/app_bar" />
-        <FrameLayout
-            android:layout_below="@+id/app_bar"
+        tools:context="com.example.julian.matthew.tamim.massivepackage.PropertyActivity">
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:focusableInTouchMode="true">
 
-                <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Enter A Location"
-                    android:inputType="text"
-                    android:paddingTop="14dp"
-                    android:paddingBottom="14dp"
-                    android:paddingLeft="25dp"
-                    android:paddingRight="14dp"
-                    android:id="@+id/search_query"/>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
-                    android:id="@+id/radius"
-                    android:textSize="15dp"
-                    android:paddingLeft="25dp"
-                    android:text="RADIUS"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:paddingLeft="20dp"
-                    android:id="@+id/spinner_radius">
-                </Spinner>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
-                    android:id="@+id/beds"
-                    android:textSize="15dp"
-                    android:paddingLeft="25dp"
-                    android:text="BEDS"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/spinner_beds_min">
-                </Spinner>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/spinner_beds_max">
-                </Spinner>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
-                    android:id="@+id/price"
-                    android:textSize="15dp"
-                    android:paddingLeft="25dp"
-                    android:text="PRICE"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/spinner_price_min">
-                </Spinner>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/spinner_price_max">
-                </Spinner>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary"
-                    android:id="@+id/added"
-                    android:textSize="15dp"
-                    android:paddingLeft="25dp"
-                    android:text="ADDED"/>
-                <Spinner
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/spinner_added">
-                </Spinner>
+            <include
+                android:id="@+id/app_bar"
+                layout="@layout/app_bar" />
+            <FrameLayout
+                android:layout_below="@+id/app_bar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <Button
-                        android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <EditText
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/btn_reset"
-                        android:text="Reset"/>
-                    <Button
-                        android:layout_width="wrap_content"
+                        android:hint="Enter A Location"
+                        android:inputType="text"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp"
+                        android:paddingLeft="25dp"
+                        android:paddingRight="14dp"
+                        android:id="@+id/search_query"/>
+                    <TextView
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/btn_search"
-                        android:text="Search"/>
+                        android:background="@color/colorPrimary"
+                        android:id="@+id/radius"
+                        android:textSize="15dp"
+                        android:paddingLeft="25dp"
+                        android:text="RADIUS"/>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="20dp"
+                        android:id="@+id/spinner_radius">
+                    </Spinner>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimary"
+                        android:id="@+id/beds"
+                        android:textSize="15dp"
+                        android:paddingLeft="25dp"
+                        android:text="BEDS"/>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spinner_beds_min">
+                    </Spinner>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spinner_beds_max">
+                    </Spinner>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimary"
+                        android:id="@+id/price"
+                        android:textSize="15dp"
+                        android:paddingLeft="25dp"
+                        android:text="PRICE"/>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spinner_price_min">
+                    </Spinner>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spinner_price_max">
+                    </Spinner>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@color/colorPrimary"
+                        android:id="@+id/added"
+                        android:textSize="15dp"
+                        android:paddingLeft="25dp"
+                        android:text="ADDED"/>
+                    <Spinner
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/spinner_added">
+                    </Spinner>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/btn_reset"
+                            android:text="Reset"/>
+                        <Button
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/btn_search"
+                            android:text="Search"/>
+                    </LinearLayout>
+
+
                 </LinearLayout>
 
 
-            </LinearLayout>
+            </FrameLayout>
 
+        </RelativeLayout>
 
-        </FrameLayout>
+    </ScrollView>
 
-    </RelativeLayout>
 
     <android.support.design.widget.NavigationView
         android:id="@+id/nav_view_property"

@@ -1,5 +1,6 @@
 package com.example.julian.matthew.tamim.massivepackage;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -51,10 +52,17 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
     private Toolbar toolbar;
     private List<PropertyModel> propertyModelList;
     private ListView lvProperties;
+    private ProgressDialog dialog;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_property_list);
+
+        dialog = new ProgressDialog(this);
+        dialog.setIndeterminate(true);
+        dialog.setCancelable(false);
+        dialog.setMessage("Loading, Please Wait...");
+        dialog.show();
 
         //CUSTOM BLUE TOOLBAR WITH ACTION BUTTONS
         toolbar = (Toolbar) findViewById(R.id.app_bar);
@@ -209,7 +217,7 @@ public class PropertyListActivity extends AppCompatActivity implements Navigatio
             PropertyAdapter adapter = new PropertyAdapter(getApplicationContext(), R.layout.property_list_row, s);
             lvProperties.setAdapter(adapter);
 
-
+            dialog.dismiss();
         }
     }
 

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.julian.matthew.tamim.massivepackage.Model.CatchmentModel;
 import com.example.julian.matthew.tamim.massivepackage.Model.ColdCallingModel;
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         dialog.setIndeterminate(true);
         dialog.setCancelable(false);
         dialog.setMessage("Loading, Please Wait...");
-        dialog.show();
+
 
 
         if (savedInstanceState != null && savedInstanceState.getParcelableArrayList("crime") != null) {
@@ -703,11 +704,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 if (!item.isChecked()) {
                     item.setChecked(true);
                     //Code here that will start displaying data
+                    Toast.makeText(getApplicationContext(), "You have chosen to show: Crime", Toast.LENGTH_LONG).show();
                     toggleMapMarkers(R.string.CRIME, "s", 0);
                     return true;
                 } else {
                     item.setChecked(false);
                     //Code here that will stop displaying data
+                    Toast.makeText(getApplicationContext(), "You have chosen to hide: Crime", Toast.LENGTH_LONG).show();
                     toggleMapMarkers(R.string.CRIME, "h", 0);
                     return true;
                 }
@@ -739,9 +742,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        dialog.show();
         mMap = googleMap;
-        new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
-        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
+
+
         // Add a marker in Sydney and move the camera
         LatLng york = new LatLng(53.958576, -1.087460);
         //mMap.addMarker(new MarkerOptions().position(york).title("Marker in York"));
@@ -754,8 +758,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 getInfoContents(marker);
             }
         });
-        operate();
-        dialog.dismiss();
+        //operate();
+        new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-at-location?date=2015-05&lat=53.958576&lng=-1.087460");
+        //new JSONTask(R.string.CRIME).execute("https://data.police.uk/api/crimes-street/all-crime?lat=53.958576&lng=-1.087460&date=2015-05");
     }
 
     private void operate() {
@@ -845,22 +850,31 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         @Override
         protected Void doInBackground(String... urls) {
 
-            String returnedJson = receiveJSON(urls[0]);
+            if(doNotParse == false){
+                setUp();
 
-            //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
-            switch (apiType) {
-                case R.string.CRIME: {
-                    //PARSE CRIME DATA
-                    parseCrimeData(returnedJson);
-                    break;
+                String returnedJson = receiveJSON(urls[0]);
+
+                //FROM THIS POINT ON IT WILL DIFFER FOR THE OTHER APIs
+                switch (apiType) {
+                    case R.string.CRIME: {
+                        //PARSE CRIME DATA
+                        parseCrimeData(returnedJson);
+                        break;
+                    }
                 }
             }
+
             return null;
         }
 
         @Override
         protected void onPostExecute(Void s) {
             super.onPostExecute(s);
+
+            showSchoolDataJSON();
+            showColdCallingData();
+            showCatchmentData();
 
 
             //CODE TO HANDLE THE MAIN THREAD UI
@@ -872,6 +886,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     break;
                 }
             }
+            dialog.dismiss();
 
         }
     }
